@@ -231,6 +231,54 @@ details.use[open] summary::after{content:" −"}
 .contact{background:var(--soft);padding:18px;margin:26px 0 0;font-size:14px}
 .contact b{display:block;margin-bottom:4px}
 .foot{font-size:12px;color:var(--faint);margin:30px 0 0}
+
+/* ── age element diagnostic */
+.tool{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;text-decoration:none;border:1px solid var(--ink);padding:14px;margin:22px 0 4px}
+.tool .ic{width:46px;height:46px;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;letter-spacing:-.02em}
+.tool b{display:block;font-weight:600}
+.tool span{font-size:13px;color:var(--mute)}
+.dg-prog{height:3px;background:var(--rule);margin:18px 0 26px}
+.dg-prog i{display:block;height:100%;background:var(--ink);transition:width .3s}
+.dg-hint{display:inline-block;font-size:12px;padding:3px 8px;background:var(--soft);color:var(--mute)}
+.dg-hint.pro{background:var(--ink);color:var(--paper)}
+.dg-n{font-size:13px;color:var(--faint);margin-top:14px}
+.dg-q{font-size:24px;line-height:1.2;font-weight:500;letter-spacing:-.01em;margin:6px 0 18px}
+.dg-opts{display:grid;gap:8px}
+.dg-opt{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:center;text-align:left;border:1px solid var(--rule);background:none;padding:13px 12px;cursor:pointer;font-size:16px;line-height:1.3}
+.dg-opt .l{width:26px;height:26px;border:1px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+.dg-opt.on{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.dg-opt.on .l{border-color:var(--paper)}
+.dg-nav{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:22px}
+.btn{border:1px solid var(--ink);background:none;padding:14px;cursor:pointer;font-size:15px;font-weight:500}
+.btn.pri{background:var(--ink);color:var(--paper)}
+.btn[disabled]{opacity:.35;cursor:default}
+.dg-reset{border:0;background:none;color:var(--mute);text-decoration:underline;cursor:pointer;font-size:13px;padding:10px 0 0}
+.dg-meta{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--ink);border-bottom:1px solid var(--rule);margin:22px 0}
+.dg-meta div{padding:14px 0}
+.dg-meta b{display:block;font-size:30px;font-weight:600;line-height:1}
+.dg-meta span{font-size:13px;color:var(--mute)}
+.bars{display:grid;gap:10px;margin:14px 0 6px}
+.bar{display:grid;grid-template-columns:22px 110px 1fr 28px;gap:10px;align-items:center;font-size:14px}
+.bar .r{font-weight:700}
+.bar .t{height:12px;background:var(--soft)}
+.bar .t i{display:block;height:100%;transition:width .6s ease}
+.bar .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--mute)}
+.ptag{display:inline-block;font-size:13px;font-weight:600;border:1px solid var(--ink);padding:4px 9px;margin:22px 0 10px}
+.approx{font-size:13px;background:var(--soft);padding:10px 12px;margin:0 0 12px;color:var(--mute)}
+.steps{list-style:none;margin:0;padding:0;border-top:1px solid var(--ink)}
+.steps>li{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:13px 0;border-bottom:1px solid var(--rule)}
+.steps>li>i{font-style:normal;font-weight:700}
+.steps a{color:var(--ink)}
+.sess{display:grid;grid-template-columns:1fr;gap:10px;margin-top:8px}
+@media(min-width:560px){.sess{grid-template-columns:1fr 1fr}}
+.sess>div{border:1px solid var(--rule);padding:14px}
+.sess h4{margin:0 0 8px;font-size:15px}
+.sess .ln{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:6px 0;border-bottom:1px solid var(--rule)}
+.sess .ln:last-of-type{border-bottom:0}
+.sess .ln a{display:flex;align-items:center;gap:8px;text-decoration:none}
+.sess .ln a i{width:10px;height:10px;display:inline-block;flex:none}
+.sess .mk{font-size:13px;color:var(--mute);margin-top:8px}
+.sess .mk a{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -295,6 +343,7 @@ function vHome(){
     <p class="lead">${total} препаратов в ${DATA.lines.length} линиях. Для каждого — эффекты, ключевые компоненты, идеальный клиент и INCI со ссылками на глоссарий.</p>
     <div class="table">${linesAZ.map(l => tile(l)).join('')}</div>
     <div class="legend"><i>12</i> число в углу — количество препаратов в линии</div>
+    <a class="tool" href="#/diag"><span class="ic">Ae</span><span><b>Подбор формулы бустеров</b><span>Диагностика клиента за 3 минуты: протокол на 5 сессий и домашний уход</span></span></a>
     <h2>Алфавитный указатель</h2>
     <div class="az">${Object.entries(letters).map(([L, ls]) => `<div class="row"><div class="L">${L}</div><div>${
       ls.map(l => { const ps = byLine(l.id); const h = ps.filter(p=>p.kind==='home').length; const pr = ps.length - h;
@@ -332,6 +381,7 @@ function vLine(id){
   const heroInner = `<div class="hero">${tile(l, true)}<div><h1>${esc(l.name)}</h1><div class="ru">${esc(l.ru)}</div></div></div>
       <p class="lead" style="margin-top:18px">${esc(l.intro)}</p>
       <h3>Для кого</h3><ul class="who">${l.who.map(w => `<li>${esc(w)}</li>`).join('')}</ul>
+      ${id === 'age-element' ? `<a class="tool" href="#/diag"><span class="ic">Ae</span><span><b>Подбор формулы бустеров</b><span>Диагностика клиента за 3 минуты: протокол на 5 сессий и домашний уход</span></span></a>` : ''}
       ${id === 'cosmelan' ? '<button class="jump" type="button" data-jump="journey">Путь пациента: 240 дней сопровождения</button>' : ''}`;
   return `<div class="wrap" style="${cvar(l)}">
     ${l.accent ? `<div class="dark">${heroInner}</div>` : heroInner}
@@ -371,6 +421,7 @@ function vProduct(code){
     : 'Набор: состав каждого компонента указан на его упаковке.';
   return `<div class="wrap" style="${cvar(l)}">
     ${l.accent ? `<div class="dark">${head}</div>` : head}
+    ${['T-PAGE0009','T-PAGE0010','T-PAGE0011','T-PAGE0012','T-PAGE0013','T-PAGE0016','T-PAGE0017','T-PAGE0018','T-PAGE0019'].includes(p.code) ? `<a class="tool" href="#/diag"><span class="ic">Ae</span><span><b>Подбор формулы бустеров</b><span>Диагностика клиента за 3 минуты: протокол на 5 сессий и домашний уход</span></span></a>` : ''}
     <section class="sect"><h3>Кратко</h3><p>${typo(p.desc)}</p></section>
     <section class="sect"><h3>Основные эффекты</h3><ul class="eff">${p.eff.map(e => `<li>${esc(e)}</li>`).join('')}</ul></section>
     ${acts.length ? `<section class="sect"><h3>Главные действующие компоненты</h3><div class="chips">${acts.map(a => `<a class="chip" href="#/g/${a}">${esc(GL[a].ru)}</a>`).join('')}</div></section>` : ''}
@@ -528,6 +579,117 @@ function journey(){
   </div>`;
 }
 
+
+/* ── age element: диагностика и формула бустеров */
+const DIAG = {"points": {"1": {"a": [{"booster": "brightening", "points": 5}], "b": [{"booster": "firming", "points": 5}], "c": [{"booster": "antiwrinkle", "points": 5}], "d": [{"booster": "redensifying", "points": 5}]}, "2": {"a": [], "b": [], "c": [], "d": []}, "3": {"a": [{"booster": "redensifying", "points": 2}], "b": [{"booster": "redensifying", "points": 1}], "c": [], "d": []}, "4": {"a": [{"booster": "brightening", "rankDependent": true}], "b": [{"booster": "firming", "rankDependent": true}], "c": [{"booster": "antiwrinkle", "rankDependent": true}], "d": [{"booster": "redensifying", "rankDependent": true}]}, "5": {"a": [{"booster": "brightening", "points": 1}, {"booster": "redensifying", "points": 1}], "b": [{"booster": "brightening", "points": 1}, {"booster": "antiwrinkle", "points": 1}], "c": [{"booster": "brightening", "points": 1}, {"booster": "firming", "points": 1}], "d": []}, "6": {"a": [{"booster": "brightening", "points": 1}, {"booster": "redensifying", "points": 1}], "b": [{"booster": "brightening", "points": 1}, {"booster": "antiwrinkle", "points": 1}], "c": [{"booster": "firming", "points": 1}], "d": []}, "7": {"a": [{"booster": "brightening", "points": 1}, {"booster": "redensifying", "points": 1}], "b": [{"booster": "firming", "points": 1}], "c": [{"booster": "antiwrinkle", "points": 1}], "d": []}, "8": {"a": [{"booster": "brightening", "points": 1}], "b": [{"booster": "brightening", "points": 1}], "c": [{"booster": "brightening", "points": 1}, {"booster": "redensifying", "points": 1}], "d": []}, "9": {"a": [{"booster": "brightening", "points": 1}], "b": [{"booster": "redensifying", "points": 1}], "c": []}, "10": {"a": [{"booster": "redensifying", "points": 1}], "b": [{"booster": "antiwrinkle", "points": 1}], "c": [{"booster": "firming", "points": 1}], "d": [{"booster": "redensifying", "points": 1}]}, "11": {"a": [{"booster": "redensifying", "points": 1}], "b": [{"booster": "antiwrinkle", "points": 1}], "c": [{"booster": "firming", "points": 1}, {"booster": "brightening", "points": 1}], "d": []}, "12": {"a": [{"booster": "redensifying", "points": 1}], "b": [{"booster": "antiwrinkle", "points": 1}], "c": [{"booster": "firming", "points": 1}], "d": []}, "13": {"a": [{"booster": "brightening", "points": 1}, {"booster": "redensifying", "points": 1}], "b": [{"booster": "antiwrinkle", "points": 1}, {"booster": "brightening", "points": 1}], "c": [{"booster": "firming", "points": 1}, {"booster": "brightening", "points": 1}], "d": []}, "14": {"a": [{"booster": "antiwrinkle", "points": 1}, {"booster": "brightening", "points": 1}], "b": [{"booster": "firming", "points": 1}, {"booster": "brightening", "points": 1}], "c": [{"booster": "redensifying", "points": 1}, {"booster": "brightening", "points": 1}], "d": []}, "15": {"a": [], "b": [{"booster": "firming", "points": 1}], "c": [{"booster": "redensifying", "points": 1}], "d": [{"booster": "antiwrinkle", "points": 1}]}, "16": {"a": [{"booster": "redensifying", "points": 1}], "b": [{"booster": "antiwrinkle", "points": 1}], "c": [{"booster": "firming", "points": 1}], "d": []}, "17": {"a": [], "b": [{"booster": "brightening", "points": 1}]}}, "combos": [{"pattern": [1, 2, 3, 4], "protocol": 1, "order": ["brightening", "firming", "antiwrinkle", "redensifying"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 2, "order": ["brightening", "firming", "redensifying", "antiwrinkle"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 3, "order": ["brightening", "antiwrinkle", "firming", "redensifying"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 4, "order": ["brightening", "antiwrinkle", "redensifying", "firming"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 5, "order": ["brightening", "redensifying", "antiwrinkle", "firming"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [1.5, 1.5, null, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 6, "order": ["brightening", "redensifying", "firming", "antiwrinkle"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 7, "order": ["firming", "brightening", "redensifying", "antiwrinkle"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.0, 1.0, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 4], "protocol": 8, "order": ["firming", "brightening", "antiwrinkle", "redensifying"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [null, 1.0, 2.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 4], "protocol": 9, "order": ["firming", "antiwrinkle", "redensifying", "brightening"], "s135": {"b": [2.0, null, 1.0, null], "mask": "Firming Mask"}, "s24": {"b": [null, 1.0, 2.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 4], "protocol": 10, "order": ["firming", "antiwrinkle", "brightening", "redensifying"], "s135": {"b": [1.0, null, 2.0, null], "mask": "Firming Mask"}, "s24": {"b": [null, 1.0, 2.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 4], "protocol": 11, "order": ["firming", "redensifying", "brightening", "antiwrinkle"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.0, 1.0, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 4], "protocol": 12, "order": ["firming", "redensifying", "antiwrinkle", "brightening"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [null, 2.0, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 4], "protocol": 13, "order": ["antiwrinkle", "firming", "redensifying", "brightening"], "s135": {"b": [1.0, null, 2.0, null], "mask": "Firming Mask"}, "s24": {"b": [null, 1.0, 2.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 14, "order": ["antiwrinkle", "firming", "brightening", "redensifying"], "s135": {"b": [1.0, null, 2.0, null], "mask": "Firming Mask"}, "s24": {"b": [null, 1.0, 2.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 15, "order": ["antiwrinkle", "redensifying", "brightening", "firming"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [1.0, 1.0, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 16, "order": ["antiwrinkle", "redensifying", "firming", "brightening"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [null, 2.0, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 17, "order": ["antiwrinkle", "brightening", "firming", "redensifying"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [null, 2.0, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 18, "order": ["antiwrinkle", "brightening", "redensifying", "firming"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [1.0, 1.0, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 4], "protocol": 19, "order": ["redensifying", "antiwrinkle", "brightening", "firming"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.0, 1.0, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 4], "protocol": 20, "order": ["redensifying", "antiwrinkle", "firming", "brightening"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 4], "protocol": 21, "order": ["redensifying", "firming", "brightening", "antiwrinkle"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.0, 1.0, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 4], "protocol": 22, "order": ["redensifying", "firming", "antiwrinkle", "brightening"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 4], "protocol": 23, "order": ["redensifying", "brightening", "firming", "antiwrinkle"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.0, 1.0, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 4], "protocol": 24, "order": ["redensifying", "brightening", "antiwrinkle", "firming"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.0, 1.0, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 2, 3], "protocol": 25, "order": ["brightening", "firming", "antiwrinkle", "redensifying"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 2, 3], "protocol": 26, "order": ["brightening", "firming", "redensifying", "antiwrinkle"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 2, 3], "protocol": 27, "order": ["brightening", "antiwrinkle", "redensifying", "firming"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [1.5, null, 1.5, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 2, 3], "protocol": 28, "order": ["firming", "brightening", "redensifying", "antiwrinkle"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.0, null, 2.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 2, 3], "protocol": 29, "order": ["firming", "antiwrinkle", "redensifying", "brightening"], "s135": {"b": [1.0, null, 2.0, null], "mask": "Firming Mask"}, "s24": {"b": [null, 1.0, 2.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 2, 3], "protocol": 30, "order": ["firming", "antiwrinkle", "brightening", "redensifying"], "s135": {"b": [1.0, null, 2.0, null], "mask": "Firming Mask"}, "s24": {"b": [null, 1.0, 2.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 2, 3], "protocol": 31, "order": ["antiwrinkle", "firming", "brightening", "redensifying"], "s135": {"b": [1.0, null, 2.0, null], "mask": "Crystal Fiber"}, "s24": {"b": [null, 1.0, 2.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 2, 3], "protocol": 32, "order": ["antiwrinkle", "redensifying", "brightening", "firming"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [1.0, null, 2.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 2, 3], "protocol": 33, "order": ["antiwrinkle", "redensifying", "firming", "brightening"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [null, 2.0, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 2, 3], "protocol": 34, "order": ["redensifying", "antiwrinkle", "brightening", "firming"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.5, null, 1.5, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 2, 3], "protocol": 35, "order": ["redensifying", "antiwrinkle", "firming", "brightening"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 2, 3], "protocol": 36, "order": ["redensifying", "firming", "brightening", "antiwrinkle"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.5, null, 1.5, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 2, 2], "protocol": 37, "order": ["brightening", "firming", "antiwrinkle", "redensifying"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 2, 2], "protocol": 38, "order": ["firming", "brightening", "redensifying", "antiwrinkle"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.0, null, 2.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 2, 2], "protocol": 39, "order": ["antiwrinkle", "firming", "redensifying", "brightening"], "s135": {"b": [1.0, null, 2.0, null], "mask": "Crystal Fiber"}, "s24": {"b": [1.0, null, 1.0, 1.0], "mask": "Firming Mask"}}, {"pattern": [1, 2, 2, 2], "protocol": 40, "order": ["redensifying", "antiwrinkle", "brightening", "firming"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.0, 1.0, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 3], "protocol": 41, "order": ["brightening", "firming", "antiwrinkle", "redensifying"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 3], "protocol": 42, "order": ["brightening", "antiwrinkle", "firming", "redensifying"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 3], "protocol": 43, "order": ["brightening", "redensifying", "antiwrinkle", "firming"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [2.0, null, null, 1.0], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 3], "protocol": 44, "order": ["firming", "brightening", "antiwrinkle", "redensifying"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [null, 1.0, 1.0, 1.0], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 3], "protocol": 45, "order": ["firming", "antiwrinkle", "brightening", "redensifying"], "s135": {"b": [1.0, null, 2.0, null], "mask": "Firming Mask"}, "s24": {"b": [null, 1.0, 2.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 3], "protocol": 46, "order": ["firming", "redensifying", "brightening", "antiwrinkle"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [1.0, 1.0, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 3], "protocol": 47, "order": ["antiwrinkle", "firming", "redensifying", "brightening"], "s135": {"b": [1.0, null, 2.0, null], "mask": "Crystal Fiber"}, "s24": {"b": [null, 1.0, 2.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 3], "protocol": 48, "order": ["antiwrinkle", "redensifying", "firming", "brightening"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [1.0, null, null, 2.0], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 3], "protocol": 49, "order": ["antiwrinkle", "brightening", "redensifying", "firming"], "s135": {"b": [1.0, 2.0, null, null], "mask": "Crystal Fiber"}, "s24": {"b": [1.0, null, 2.0, null], "mask": "Firming Mask"}}, {"pattern": [1, 2, 3, 3], "protocol": 50, "order": ["redensifying", "antiwrinkle", "firming", "brightening"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 3], "protocol": 51, "order": ["redensifying", "firming", "antiwrinkle", "brightening"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Crystal Fiber"}}, {"pattern": [1, 2, 3, 3], "protocol": 52, "order": ["redensifying", "brightening", "antiwrinkle", "firming"], "s135": {"b": [2.0, 1.0, null, null], "mask": "Firming Mask"}, "s24": {"b": [2.0, null, 1.0, null], "mask": "Crystal Fiber"}}], "questions": [{"id": 1, "text": "Сколько вам лет?", "hint": "Заполняет клиент", "options": [["a", "20–30 лет"], ["b", "31–45 лет"], ["c", "46–59 лет"], ["d", "Старше 60 лет"]]}, {"id": 2, "text": "Тип кожи", "hint": "Оценивает косметолог", "options": [["a", "Жирная"], ["b", "Комбинированная"], ["c", "Нормальная"], ["d", "Сухая"], ["e", "Чувствительная"]]}, {"id": 3, "text": "Толщина кожи", "hint": "Оценивает косметолог", "options": [["a", "Очень тонкая"], ["b", "Тонкая"], ["c", "Нормальная"], ["d", "Плотная"]]}, {"id": 5, "text": "Используете солнцезащитный крем?", "hint": "Заполняет клиент", "options": [["a", "Только летом"], ["b", "Только в солнечную погоду"], ["c", "Ежедневно, наношу один раз утром перед выходом"], ["d", "Ежедневно и обновляю в течение дня"]]}, {"id": 6, "text": "Сколько времени в среднем проводите на улице днём?", "hint": "Заполняет клиент", "options": [["a", "Большую часть дня"], ["b", "4–6 часов"], ["c", "2–3 часа"], ["d", "Меньше 1 часа"]]}, {"id": 7, "text": "Что из этого про ваш сон?", "hint": "Заполняет клиент", "options": [["a", "Сплю меньше 6 часов и сон не приносит отдыха"], ["b", "Сплю 6 часов или меньше, но высыпаюсь"], ["c", "Сплю 7–8 часов, но сон не глубокий"], ["d", "Сплю 7–8 часов и просыпаюсь отдохнувшей(им)"]]}, {"id": 8, "text": "Что из этого связано с вашей работой?", "hint": "Заполняет клиент", "options": [["a", "Работаю на улице"], ["b", "Много времени провожу перед экранами (синий свет)"], ["c", "Работаю рядом с постоянным источником тепла (кухня, производство)"], ["d", "Ничего из перечисленного"]]}, {"id": 9, "text": "Ваша жизнь связана с высоким уровнем стресса?", "hint": "Заполняет клиент", "options": [["a", "Да, постоянно"], ["b", "Часто"], ["c", "Обычно нет"]]}, {"id": 10, "text": "Как часто вы физически активны?", "hint": "Заполняет клиент", "options": [["a", "Никогда"], ["b", "1 раз в неделю"], ["c", "2 и более раз в неделю"], ["d", "Ежедневно"]]}, {"id": 11, "text": "Каким видом активности вы занимаетесь?", "hint": "Заполняет клиент", "options": [["a", "Бег и/или кроссфит"], ["b", "Фитнес, силовые или другие аэробные нагрузки"], ["c", "Плавание, сёрфинг и другие водные виды спорта"], ["d", "Ничего из перечисленного"]]}, {"id": 12, "text": "Что из этого про ваш питьевой режим?", "hint": "Заполняет клиент", "options": [["a", "Почти не пью воду, в основном газировка и соки"], ["b", "Пью воду пару раз в день, часто с сахаром/алкоголем"], ["c", "Обычно выпиваю меньше 1,5 л воды в день"], ["d", "Выпиваю больше 1 бутылки воды в день"]]}, {"id": 13, "text": "Вы курите?", "hint": "Заполняет клиент", "options": [["a", "Да"], ["b", "Иногда"], ["c", "Раньше курил(а), но бросил(а)"], ["d", "Нет"]]}, {"id": 14, "text": "Где вы живёте и работаете?", "hint": "Заполняет клиент", "options": [["a", "В среднем/крупном городе"], ["b", "Работаю в городской и/или промышленной зоне"], ["c", "Живу и работаю в городе"], ["d", "Ничего из перечисленного"]]}, {"id": 15, "text": "Какого питания вы придерживаетесь?", "hint": "Заполняет клиент", "options": [["a", "Здоровое и сбалансированное"], ["b", "В целом сбалансированное, но иногда жирное/сладкое/алкоголь"], ["c", "Часто фастфуд и переработанные продукты"], ["d", "Низкобелковая, веганская или вегетарианская диета"]]}, {"id": 16, "text": "Что входит в ваш повседневный уход за кожей?", "hint": "Заполняет клиент", "options": [["a", "Только гигиена лица"], ["b", "Плюс ежедневный антивозрастной уход"], ["c", "Плюс концентрат/сыворотка и уход за контуром глаз"], ["d", "Плюс еженедельные ампулы и маски"]]}, {"id": 17, "text": "Вы регулярно делаете эксфолиацию кожи?", "hint": "Заполняет клиент", "options": [["a", "Да"], ["b", "Нет"]]}], "q4": {"text": "Расставьте главные проблемы клиента по важности", "hint": "От самой важной (1) до наименее важной (4) — заполняет клиент вместе с косметологом", "items": [["brightening", "Тусклость кожи и неровный тон"], ["firming", "Дряблость и потеря упругости"], ["antiwrinkle", "Морщины"], ["redensifying", "Истончение кожи и потеря контура лица"]]}, "boosterShort": {"brightening": "Brightening", "firming": "Firming", "antiwrinkle": "Anti-wrinkle", "redensifying": "Redensifying"}};
+const DG_STEPS = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17];
+const BCOL = {brightening:'#A6895B', firming:'#7C8384', antiwrinkle:'#9C6E6C', redensifying:'#8C7A4E'};
+const BCODE = {brightening:'T-PAGE0010', firming:'T-PAGE0012', antiwrinkle:'T-PAGE0011', redensifying:'T-PAGE0013'};
+const MASK = {'crystal fiber':'T-PAGE0014', 'firming mask':'T-PAGE0015'};
+// домашний уход — актуальный ассортимент age element (замена старых линий из исходного теста)
+const HOME = {
+  brightening:{cream:'T-DABS0002', eye:'T-DABS0003', serum:'T-DABS0004'},
+  firming:{cream:'T-DAFS0003', eye:'T-DAFS0004', serum:'T-DAFS0005'},
+  antiwrinkle:{cream:'T-DAWS0003', eye:'T-DAWS0004', serum:'T-DAWS0005'},
+  redensifying:{cream:'T-DAWS0007', eye:'T-DAWS0004', serum:'T-DMOI0001'}
+};
+let dg = {screen:'intro', i:0, a:{}, rank:{}, order:[]};
+const plink = (code, txt) => PROD[code] ? `<a href="#/p/${code}">${esc(txt || (PROD[code].en))}</a>` : esc(txt || code);
+
+function vDiag(){
+  if (dg.screen === 'intro') return `<div class="wrap" style="--c:#231F20">
+    <div class="pc-head" style="border:0;padding-bottom:0"><a class="crumb" href="#/line/age-element"><i></i>age element® · антивозрастной уход</a></div>
+    <h1>Формула бустеров для процедуры</h1>
+    <p class="lead">Пройдите тест вместе с клиентом: часть вопросов оценивает специалист, часть отвечает клиент. В конце — протокол бустеров и маски для сессий 1–5 и домашний уход.</p>
+    <div class="dg-meta"><div><b>17</b><span>вопросов</span></div><div><b>4</b><span>бустера</span></div><div><b>~3</b><span>минуты</span></div></div>
+    <button class="btn pri" style="width:100%" data-dg="start">Начать диагностику</button>
+  </div>`;
+  if (dg.screen === 'result') return dgResult();
+  const qid = DG_STEPS[dg.i];
+  const pct = Math.round(dg.i / DG_STEPS.length * 100);
+  let hint, text, body, ok;
+  if (qid === 4){
+    hint = 'Клиент вместе с косметологом'; text = DIAG.q4.text;
+    body = `<p class="small" style="margin-top:-8px">Нажимайте по порядку: от самой важной (1) до наименее важной (4).</p><div class="dg-opts">${
+      DIAG.q4.items.map(([k,l]) => `<button class="dg-opt${dg.rank[k]?' on':''}" data-rank="${k}"><span class="l">${dg.rank[k]||''}</span><span>${esc(l)}</span></button>`).join('')}</div>
+      ${dg.order.length ? '<button class="dg-reset" data-dg="reset">Сбросить порядок</button>' : ''}`;
+    ok = dg.order.length === 4;
+  } else {
+    const q = DIAG.questions.find(x => x.id === qid);
+    hint = q.hint; text = q.text;
+    body = `<div class="dg-opts">${q.options.map(([l,txt]) => `<button class="dg-opt${dg.a[qid]===l?' on':''}" data-ans="${qid}:${l}"><span class="l">${l}</span><span>${esc(txt)}</span></button>`).join('')}</div>`;
+    ok = !!dg.a[qid];
+  }
+  return `<div class="wrap">
+    <div class="dg-prog"><i style="width:${pct}%"></i></div>
+    <span class="dg-hint${/косметолог/i.test(hint) && !/клиент/i.test(hint) ? ' pro':''}">${esc(hint)}</span>
+    <div class="dg-n">Вопрос ${dg.i+1} из ${DG_STEPS.length}</div>
+    <h2 class="dg-q">${esc(text)}</h2>${body}
+    <div class="dg-nav"><button class="btn" data-dg="back" ${dg.i===0?'disabled':''}>Назад</button><button class="btn pri" data-dg="next" ${ok?'':'disabled'}>${dg.i===DG_STEPS.length-1?'Получить формулу':'Далее'}</button></div>
+  </div>`;
+}
+function dgTotals(){
+  const t = {brightening:0, firming:0, antiwrinkle:0, redensifying:0};
+  DG_STEPS.forEach(q => { if (q === 4) return; const a = dg.a[q]; if (!a) return;
+    ((DIAG.points[q] && DIAG.points[q][a]) || []).forEach(e => { if (typeof e.points === 'number') t[e.booster] += e.points; }); });
+  Object.entries(dg.rank).forEach(([b,r]) => t[b] += r===1 ? 2 : r===2 ? 1 : 0);
+  return t;
+}
+function dgResult(){
+  const t = dgTotals();
+  const order = Object.keys(t).sort((a,b) => t[b]-t[a] || (dg.rank[a]-dg.rank[b]));
+  const vals = order.map(b => t[b]); const pattern = [1];
+  for (let i=1;i<4;i++) pattern.push(vals[i]===vals[i-1] ? pattern[i-1] : pattern[i-1]+1);
+  const J = JSON.stringify;
+  let combo = DIAG.combos.find(c => J(c.pattern)===J(pattern) && J(c.order)===J(order)), approx = false;
+  if (!combo){ combo = DIAG.combos.find(c => J(c.pattern)===J([1,2,3,4]) && J(c.order)===J(order)); approx = true; }
+  const max = Math.max(...vals, 1);
+  const bars = order.map((b,i) => `<div class="bar"><span class="r">${i+1}</span><span>${DIAG.boosterShort[b]}</span><span class="t"><i style="width:${(t[b]/max*100).toFixed(0)}%;background:${BCOL[b]}"></i></span><span class="v">${t[b]}</span></div>`).join('');
+  const ml = v => String(v).replace('.', ',') + ' мл';
+  const sess = (title, s) => `<div><h4>${title}</h4>
+    <div class="ln"><span>${plink('T-PAGE0009','hydrabalance cream')}</span><span>основа</span></div>
+    ${s.b.map((v,i) => v===null ? '' : `<div class="ln"><a href="#/p/${BCODE[combo.order[i]]}"><i style="background:${BCOL[combo.order[i]]}"></i>${DIAG.boosterShort[combo.order[i]]} booster</a><b>${ml(v)}</b></div>`).join('')}
+    <div class="mk">Финиш: ${plink(MASK[s.mask.toLowerCase()], 'age element ' + s.mask.toLowerCase())}</div></div>`;
+  const h1 = HOME[order[0]], h2 = HOME[order[1]];
+  const homeItems = [[h1.cream,'основной крем'],[h1.eye,'контур глаз'],[h2.serum,'сыворотка-концентрат']];
+  return `<div class="wrap">
+    <div class="pc-head" style="border:0;padding-bottom:0"><a class="crumb" href="#/line/age-element" style="--c:#231F20"><i></i>age element® · формула бустеров</a></div>
+    <h1>Приоритеты кожи клиента</h1>
+    <div class="bars">${bars}</div>
+    ${combo ? `<span class="ptag">Протокол № ${combo.protocol}</span>
+      ${approx ? '<p class="approx">Такое сочетание баллов не описано в таблице комбинаций напрямую — показан ближайший протокол по итоговому порядку приоритетов. Рекомендуем сверить с бренд-тренером.</p>' : ''}
+      <h3>Ход процедуры</h3>
+      <ol class="steps">
+        <li><i>1</i><span>Очищение — ${plink('T-PHIG0023','age element cleansing balm')}</span></li>
+        <li><i>2</i><span>Эксфолиация — ${plink('T-PPEL0001','age element resurfacing solution')}</span></li>
+        <li><i>3</i><span>Массаж с основой и бустерами по схеме сессии, затем маска</span></li>
+      </ol>
+      <div class="sess">${sess('Сессии 1, 3, 5', combo.s135)}${sess('Сессии 2, 4', combo.s24)}</div>`
+      : '<p class="approx">Не удалось найти протокол для этого сочетания баллов. Проверьте ответы.</p>'}
+    <h3 style="margin-top:30px">Домашний уход</h3>
+    <p class="small">Подобран по двум главным приоритетам: ${DIAG.boosterShort[order[0]]} + ${DIAG.boosterShort[order[1]]}.</p>
+    <ol class="steps">${homeItems.map(([c,role],i) => `<li><i>${i+1}</i><span>${PROD[c] ? `<a href="#/p/${c}">${esc(PROD[c].ru)}</a> · ${esc(PROD[c].en)}` : c}<br><span class="small">${role}</span></span></li>`).join('')}
+      <li><i>4</i><span><a href="#/p/T-DSUN0034">${esc(PROD['T-DSUN0034'].ru)}</a> · ежедневно<br><span class="small">защита результата процедур</span></span></li></ol>
+    <p class="note" style="margin-top:16px">Логика: баллы по ответам → ранжирование 4 бустеров → таблица из 52 комбинаций. Домашний уход адаптирован под текущий ассортимент. Перед внедрением сверьте с бренд-тренером.</p>
+    <div class="dg-nav"><button class="btn" data-dg="edit">Изменить ответы</button><button class="btn pri" data-dg="restart">Новый клиент</button></div>
+  </div>`;
+}
+document.addEventListener('click', e => {
+  const x = e.target.closest('[data-dg],[data-ans],[data-rank]'); if (!x || !$('#view').contains(x)) return;
+  if (x.dataset.ans){ const [q,l] = x.dataset.ans.split(':'); dg.a[q] = l; }
+  else if (x.dataset.rank){ const k = x.dataset.rank; if (!dg.rank[k]){ dg.order.push(k); dg.rank[k] = dg.order.length; } }
+  else { const a = x.dataset.dg;
+    if (a==='start'){ dg.screen='question'; dg.i=0; }
+    if (a==='reset'){ dg.rank={}; dg.order=[]; }
+    if (a==='back' && dg.i>0) dg.i--;
+    if (a==='next'){ if (dg.i < DG_STEPS.length-1) dg.i++; else dg.screen='result'; }
+    if (a==='edit'){ dg.screen='question'; dg.i=0; }
+    if (a==='restart') dg = {screen:'intro', i:0, a:{}, rank:{}, order:[]};
+  }
+  $('#view').innerHTML = vDiag();
+  if (x.dataset.dg) window.scrollTo(0,0);
+});
+
 function vNotFound(){ return `<div class="wrap"><h1>Страница не найдена</h1><p class="lead">Ссылка устарела или содержит ошибку.</p><a class="chip" href="#/">Открыть список линий</a></div>`; }
 
 /* ── router */
@@ -542,6 +704,7 @@ function route(){
   else if (a === 'glossary'){ html = vGlossary(); title = 'Глоссарий'; tab = 'glossary'; }
   else if (a === 'g'){ html = vGlossEntry(b); title = 'Глоссарий'; tab = 'glossary'; }
   else if (a === 'search'){ html = vSearch(); title = 'Поиск'; tab = 'search'; }
+  else if (a === 'diag'){ html = vDiag(); title = 'age element · диагностика'; }
   else if (a === 'about'){ html = vAbout(); title = 'О компании'; tab = 'about'; }
   else html = vNotFound();
   $('#view').innerHTML = html;
