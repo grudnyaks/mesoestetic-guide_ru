@@ -1,0 +1,8 @@
+{
+  "appId": "ru.mesoestetic.guide",
+  "appName": "mesoestetic справочник",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#ffffff"
+  }
+}

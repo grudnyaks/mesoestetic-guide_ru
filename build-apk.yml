@@ -1,0 +1,72 @@
+name: Сборка APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Получить файлы репозитория
+        uses: actions/checkout@v5
+
+      - name: Проверить файлы
+        run: |
+          ls -la
+          for f in index.html package.json capacitor.config.json; do
+            if [ ! -f "$f" ]; then
+              echo "::error::Не найден файл $f в корне репозитория. Загрузите его через Add file → Upload files."
+              exit 1
+            fi
+          done
+
+      - name: Подготовить папку www
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+
+      - name: Установить Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Установить Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Установить зависимости
+        run: npm install --no-audit --no-fund
+
+      - name: Создать Android-проект
+        run: npx cap add android
+
+      - name: Поставить иконку и заставку
+        run: |
+          if [ -f android-res.zip ]; then
+            unzip -o android-res.zip -d android/app/src/main/res/
+          else
+            echo "::warning::android-res.zip не найден — будет стандартная иконка."
+          fi
+
+      - name: Перенести справочник в Android-проект
+        run: npx cap sync android
+
+      - name: Собрать APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Подготовить APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk mesoestetic-guide.apk
+
+      - name: Выложить APK для скачивания
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesoestetic-guide-apk
+          path: mesoestetic-guide.apk
+          retention-days: 30
