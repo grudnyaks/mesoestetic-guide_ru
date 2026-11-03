@@ -15,12 +15,25 @@ jobs:
       - name: Проверить файлы
         run: |
           ls -la
-          for f in index.html package.json capacitor.config.json; do
+          for f in index.html version.json package.json capacitor.config.json android-theme.py; do
             if [ ! -f "$f" ]; then
               echo "::error::Не найден файл $f в корне репозитория. Загрузите его через Add file → Upload files."
               exit 1
             fi
           done
+
+      - name: Сверить версию справочника
+        run: |
+          V=$(python3 -c "import json;print(json.load(open('version.json'))['version'])")
+          if ! grep -q "<meta name=\"app-version\" content=\"$V\">" index.html; then
+            echo "::error::Версия в version.json ($V) не совпадает с <meta name=\"app-version\"> в index.html. Обновите обе."
+            exit 1
+          fi
+          if ! grep -q "var BUNDLED = '$V';" index.html; then
+            echo "::error::Версия $V не совпадает с BUNDLED в index.html."
+            exit 1
+          fi
+          echo "Версия справочника: $V"
 
       - name: Подготовить папку www
         run: |
@@ -51,6 +64,9 @@ jobs:
           else
             echo "::warning::android-res.zip не найден — будет стандартная иконка."
           fi
+
+      - name: Тема Android, чёрный старт, версия APK
+        run: python3 android-theme.py
 
       - name: Перенести справочник в Android-проект
         run: npx cap sync android

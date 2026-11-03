@@ -3,6 +3,6 @@
   "appName": "mesoestetic справочник",
   "webDir": "www",
   "android": {
-    "backgroundColor": "#ffffff"
+    "backgroundColor": "#000000"
   }
 }
