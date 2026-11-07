@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="2026.11.07.3">
+<meta name="app-version" content="2026.11.07.4">
 <script>
 /* ── обновление по воздуху: если в памяти лежит более свежая версия справочника, запускаем её вместо встроенной */
 (function(){
-  var BUNDLED = '2026.11.07.3';
+  var BUNDLED = '2026.11.07.4';
   function cmp(a, b){ a = String(a).split('.'); b = String(b).split('.');
     for (var i = 0; i < Math.max(a.length, b.length); i++){ var d = (+a[i] || 0) - (+b[i] || 0); if (d) return d; } return 0; }
   window.__verCmp = cmp;
@@ -130,7 +130,7 @@ p{margin:0 0 12px;max-width:66ch}
 .tile{position:relative;display:flex;flex-direction:column;text-decoration:none;aspect-ratio:1/1;border:4px solid var(--c);padding:7% 8% 7%;color:var(--ink);background:var(--paper);container-type:inline-size;overflow:hidden;transition:transform .18s var(--ease)}
 .tile .n{position:absolute;top:6%;right:8%;font-size:clamp(10px,10cqw,14px);font-weight:600;line-height:1}
 .tile .s{display:block;font-size:31cqw;font-weight:700;letter-spacing:-.03em;line-height:1;margin-top:7cqw}
-.tile .nm{margin-top:auto;font-size:clamp(8.5px,8.4cqw,12px);line-height:1.18;color:var(--mute)}
+.tile .nm{margin-top:auto;font-size:clamp(8.5px,8.4cqw,12px);line-height:1.18;color:var(--mute);hyphens:auto;overflow-wrap:anywhere}
 .tile .nm b{display:block;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
 .tile.acc{background:#000;color:#fff;border-color:#000}
 .tile.acc .nm{color:#bdbdbd}.tile.acc .nm b{color:#fff}
@@ -1257,7 +1257,7 @@ function bindSearch(){
 }
 
 /* ══ Академия: тесты по ассортименту, значки бронза / серебро / золото ═══════════════ */
-const MEDALS = [['gold', 95, 'Золотой', '#D9B44A', '#F6E7A8', '#9C7A1E'], ['silver', 85, 'Серебряный', '#A9ADB3', '#EEF0F2', '#6E737A'], ['bronze', 75, 'Бронзовый', '#B5763A', '#E9BE90', '#7A4A20']];
+const MEDALS = [['gold', 95, 'Золото', '#D9B44A', '#F6E7A8', '#9C7A1E'], ['silver', 85, 'Серебро', '#A9ADB3', '#EEF0F2', '#6E737A'], ['bronze', 75, 'Бронза', '#B5763A', '#E9BE90', '#7A4A20']];
 const medalFor = pct => MEDALS.find(m => pct >= m[1]) || null;
 const TESTS = () => [
   ...linesAZ.map(l => ({id: l.id, sym: l.sym, color: l.color, name: l.name, sub: l.ru, pool: byLine(l.id).filter(p => !p.disc), n: 10})),
@@ -1321,7 +1321,7 @@ function vAcademy(){
   const card = t => `<a class="atest" href="#/test/${t.id}">${badgeHtml(t, st[t.id])}<span class="nm"><b>${esc(t.name)}</b>${esc(t.sub)}<small>${t.n} вопросов${st[t.id] ? ' · лучший результат ' + st[t.id].best + '%' : ''}</small></span></a>`;
   return `<div class="wrap"><h1>Академия</h1>
     <p class="lead">Тесты по ассортименту: по каждой линии и по всему домашнему и кабинетному уходу. Вопросы каждый раз собираются заново из справочника.</p>
-    <div class="medals">${MEDALS.map(m => `<div class="md m-${m[0]}" style="--m1:${m[3]};--m2:${m[4]};--m3:${m[5]}"><i></i><b>${cnt(m[0])}</b><span>${m[2].toLowerCase()}<em>от ${m[1]}%</em></span></div>`).join('')}</div>
+    <div class="medals">${MEDALS.map(m => `<div class="md m-${m[0]}" style="--m1:${m[3]};--m2:${m[4]};--m3:${m[5]}"><i></i><b>${cnt(m[0])}</b><span>${m[2]}<em>от ${m[1]}%</em></span></div>`).join('')}</div>
     <label class="aname"><span>Имя для сертификата</span><input id="acName" value="${esc(lsGet('academy.name') || '')}" placeholder="Например, Анна Иванова" autocomplete="name"></label>
     <h2>Весь ассортимент</h2><div class="atests">${ts.slice(-2).map(card).join('')}</div>
     <h2>По линиям</h2><div class="atests">${ts.slice(0, -2).map(card).join('')}</div>
@@ -1369,7 +1369,7 @@ function finishTest(){
   TEST.done = true; TEST.result = {t, pct, right, total: qs.length, date: Date.now()};
   const box = $('#test');
   box.innerHTML = `<div class="tres">${badgeHtml(t, {best: pct}, true)}
-      <div class="pct">${pct}%</div><p>${right} из ${qs.length} верных${m ? ` · <b>${m[2]} значок</b>` : ` · до бронзы нужно ${MEDALS[2][1]}%`}</p></div>
+      <div class="pct">${pct}%</div><p>${right} из ${qs.length} верных${m ? ` · <b>${m[2]}</b>` : ` · до бронзы нужно ${MEDALS[2][1]}%`}</p></div>
     ${qs.map((q, k) => ans[k] ? '' : `<div class="trev"><b>${esc(q.q)}</b>${q.ctx ? `<span>${esc(q.ctx)}</span>` : ''}<span>Правильно: ${esc(q.a)}</span>${q.code ? `<a href="#/p/${q.code}">Открыть препарат →</a>` : ''}</div>`).join('')}
     <div class="rowbtns"><button class="btn pri" type="button" data-tr="share">Поделиться результатом</button><button class="btn" type="button" data-tr="again">Пройти ещё раз</button></div>
     <p style="margin-top:14px"><a href="#/academy">← Все тесты</a></p>`;
@@ -1381,7 +1381,7 @@ function showAward(t, m, pct){
   const el = document.createElement('div'); el.className = 'award';
   el.innerHTML = `<div class="aw-bits">${Array.from({length: 26}, (_, i) => `<i style="--x:${(Math.random() * 2 - 1).toFixed(2)};--y:${(Math.random() * 2 - 1).toFixed(2)};--r:${(Math.random() * 360) | 0}deg;--d:${(Math.random() * .25).toFixed(2)}s"></i>`).join('')}</div>
     <div class="aw-badge" style="--m1:${m[3]};--m2:${m[4]};--m3:${m[5]}"><span class="s"></span>${t.tag ? `<span class="tg">${t.tag}</span>` : ''}<span class="n">${pct}%</span><span class="shine"></span></div>
-    <div class="aw-txt"><b>${m[2]} значок</b><span>${esc(t.name)} · ${pct}%</span></div>
+    <div class="aw-txt"><b>${m[2]}</b><span>${esc(t.name)} · ${pct}%</span></div>
     <div class="aw-btns"><button type="button" class="btn" data-aw="share">Поделиться</button><button type="button" class="btn pri" data-aw="ok">Отлично</button></div>`;
   el.style.setProperty('--m1', m[3]); el.style.setProperty('--m2', m[4]);
   document.body.appendChild(el);
@@ -1395,7 +1395,7 @@ function closeAward(){ const el = document.querySelector('.award'); if (!el) ret
 function shareResult(r){
   const m = medalFor(r.pct), nm = lsGet('academy.name');
   shareSheet('Результат теста', {color: m ? m[5] : r.t.color, sym: r.t.sym, kicker: 'Академия mesoestetic', kicker2: r.t.name + ' · ' + r.t.sub,
-    title: m ? `${m[2]} значок` : 'Тест пройден', big: ['Результат', r.pct + '%'], file: 'Академия ' + r.t.name,
+    title: m ? m[2] : 'Тест пройден', big: ['Результат', r.pct + '%'], file: 'Академия ' + r.t.name,
     meta: `${r.right} из ${r.total} верных · ${new Date(r.date).toLocaleDateString('ru-RU')}`,
     sections: [nm ? {h: 'Участник', text: nm} : null, {h: 'Шкала значков', list: MEDALS.map(x => `${x[2]} — от ${x[1]}%`)}]});
 }
