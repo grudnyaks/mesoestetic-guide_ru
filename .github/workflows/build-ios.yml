@@ -1,0 +1,129 @@
+name: Сборка iOS
+
+# Всегда собирает:
+#   • mesoestetic-ios-simulator — приложение для симулятора iPhone в Xcode;
+#   • mesoestetic-ios-unsigned  — неподписанный .ipa для установки через Sideloadly / AltStore со своим Apple ID.
+# Если заданы секреты Apple (см. README → iOS), дополнительно подписывает сборку и отправляет её в TestFlight.
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths: [ 'index.html', 'version.json', 'package.json', 'capacitor.config.json', 'ios-setup.py', 'icons/**', '.github/workflows/build-ios.yml' ]
+
+concurrency:
+  group: ios-build
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Установить Capacitor
+        run: npm install --no-audit --no-fund
+
+      - name: Подготовить папку www
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+
+      - name: Создать iOS-проект
+        run: |
+          npx cap add ios
+          python3 -m pip install --quiet --break-system-packages pillow || python3 -m pip install --quiet pillow
+          python3 ios-setup.py
+          npx cap sync ios
+
+      - name: Сборка для симулятора
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO build | tail -n 30
+          cd build/sim/Build/Products/Release-iphonesimulator && zip -qry "$GITHUB_WORKSPACE/mesoestetic-simulator.zip" App.app
+
+      - name: Неподписанная сборка для iPhone
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath build/dev CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" build | tail -n 30
+          mkdir -p Payload && cp -R build/dev/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qry mesoestetic-unsigned.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mesoestetic-ios-simulator
+          path: mesoestetic-simulator.zip
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mesoestetic-ios-unsigned
+          path: mesoestetic-unsigned.ipa
+          retention-days: 30
+
+      # ── Подпись и TestFlight: только если в Settings → Secrets → Actions заданы секреты Apple
+      - name: Проверить секреты Apple
+        id: apple
+        env:
+          CERT: ${{ secrets.IOS_CERT_P12 }}
+          PROFILE: ${{ secrets.IOS_PROFILE }}
+        run: |
+          if [ -n "$CERT" ] && [ -n "$PROFILE" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "::notice::Секреты Apple не заданы — подписанная сборка и TestFlight пропущены."; fi
+
+      - name: Подписать и отправить в TestFlight
+        if: steps.apple.outputs.ok == 'true'
+        env:
+          CERT: ${{ secrets.IOS_CERT_P12 }}
+          CERT_PASS: ${{ secrets.IOS_CERT_PASSWORD }}
+          PROFILE: ${{ secrets.IOS_PROFILE }}
+          KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+          ISSUER: ${{ secrets.APPSTORE_ISSUER_ID }}
+          KEY: ${{ secrets.APPSTORE_API_KEY }}
+        run: |
+          set -e
+          KC=$RUNNER_TEMP/build.keychain; KCP=$(uuidgen)
+          echo "$CERT" | base64 --decode > $RUNNER_TEMP/cert.p12
+          echo "$PROFILE" | base64 --decode > $RUNNER_TEMP/app.mobileprovision
+          security create-keychain -p "$KCP" $KC && security set-keychain-settings -lut 3600 $KC && security unlock-keychain -p "$KCP" $KC
+          security import $RUNNER_TEMP/cert.p12 -P "$CERT_PASS" -A -t cert -f pkcs12 -k $KC
+          security set-key-partition-list -S apple-tool:,apple: -k "$KCP" $KC >/dev/null
+          security list-keychains -d user -s $KC $(security list-keychains -d user | tr -d '"')
+          security cms -D -i $RUNNER_TEMP/app.mobileprovision > $RUNNER_TEMP/profile.plist
+          UUID=$(/usr/libexec/PlistBuddy -c 'Print UUID' $RUNNER_TEMP/profile.plist)
+          TEAM=$(/usr/libexec/PlistBuddy -c 'Print TeamIdentifier:0' $RUNNER_TEMP/profile.plist)
+          PNAME=$(/usr/libexec/PlistBuddy -c 'Print Name' $RUNNER_TEMP/profile.plist)
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles && cp $RUNNER_TEMP/app.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release -sdk iphoneos \
+            -archivePath build/App.xcarchive archive CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=$TEAM \
+            PROVISIONING_PROFILE_SPECIFIER="$PNAME" CODE_SIGN_IDENTITY="Apple Distribution" OTHER_CODE_SIGN_FLAGS="--keychain $KC" | tail -n 30
+          cat > $RUNNER_TEMP/export.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$TEAM</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>provisioningProfiles</key><dict><key>ru.mesoestetic.guide</key><string>$PNAME</string></dict>
+          </dict></plist>
+          PLIST
+          sed -i '' 's/^          //' $RUNNER_TEMP/export.plist
+          xcodebuild -exportArchive -archivePath build/App.xcarchive -exportOptionsPlist $RUNNER_TEMP/export.plist -exportPath build/export | tail -n 20
+          if [ -n "$KEY_ID" ] && [ -n "$ISSUER" ] && [ -n "$KEY" ]; then
+            mkdir -p ~/.appstoreconnect/private_keys && echo "$KEY" > ~/.appstoreconnect/private_keys/AuthKey_$KEY_ID.p8
+            xcrun altool --upload-app -f build/export/*.ipa -t ios --apiKey "$KEY_ID" --apiIssuer "$ISSUER"
+          else
+            echo "::notice::Ключ App Store Connect не задан — подписанный .ipa сохранён в артефактах, без отправки в TestFlight."
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: steps.apple.outputs.ok == 'true'
+        with:
+          name: mesoestetic-ios-signed
+          path: build/export/*.ipa
+          retention-days: 30

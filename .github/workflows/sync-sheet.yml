@@ -1,0 +1,60 @@
+name: Синхронизация с Google-таблицей
+
+# Раз в 6 часов и вручную (Actions → «Синхронизация с Google-таблицей» → Run workflow).
+# Ссылки на опубликованные CSV листов — в Settings → Secrets and variables → Actions → Variables:
+#   SHEET_PRODUCTS_CSV, SHEET_LINES_CSV, SHEET_GLOSSARY_CSV
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: sheet-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Проверить настройки
+        id: cfg
+        env:
+          P: ${{ vars.SHEET_PRODUCTS_CSV }}
+          L: ${{ vars.SHEET_LINES_CSV }}
+          G: ${{ vars.SHEET_GLOSSARY_CSV }}
+        run: |
+          if [ -z "$P$L$G" ]; then
+            echo "::notice::Ссылки на таблицу ещё не заданы (Settings → Secrets and variables → Actions → Variables). Пропускаю."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Применить данные из таблицы
+        id: sync
+        if: steps.cfg.outputs.skip != 'true'
+        env:
+          SHEET_PRODUCTS_CSV: ${{ vars.SHEET_PRODUCTS_CSV }}
+          SHEET_LINES_CSV: ${{ vars.SHEET_LINES_CSV }}
+          SHEET_GLOSSARY_CSV: ${{ vars.SHEET_GLOSSARY_CSV }}
+        run: python3 tools/sheet_sync.py index.html
+
+      - name: Поднять версию и сохранить
+        if: steps.sync.outputs.changed == 'true'
+        run: |
+          python3 bump-version.py "Обновлены данные справочника"
+          git config user.name "mesoestetic-guide-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html version.json
+          git commit -m "Данные из Google-таблицы: версия $(python3 -c "import json;print(json.load(open('version.json'))['version'])")"
+          git push
+
+      - name: Собрать APK с новыми данными
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run build-apk.yml --ref main

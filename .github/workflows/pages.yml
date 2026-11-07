@@ -1,0 +1,39 @@
+name: Веб-версия (GitHub Pages)
+
+# Публикует справочник как сайт-приложение: https://grudnyaks.github.io/mesoestetic-guide_ru/
+# На iPhone: открыть ссылку в Safari → «Поделиться» → «На экран Домой».
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths: [ 'index.html', 'manifest.webmanifest', 'sw.js', 'icons/**', 'version.json', '.github/workflows/pages.yml' ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.dep.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Собрать сайт
+        run: |
+          mkdir -p site && cp -r index.html manifest.webmanifest sw.js version.json icons site/
+          # новая версия — новый кэш офлайн-режима
+          V=$(python3 -c "import json;print(json.load(open('version.json'))['version'])")
+          sed -i "s/meso-guide-v1/meso-guide-$V/" site/sw.js
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: dep
+        uses: actions/deploy-pages@v4

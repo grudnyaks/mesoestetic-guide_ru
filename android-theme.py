@@ -4,6 +4,7 @@
 - тема DayNight: WebView узнаёт системную тёмную тему (с Light-темой справочник всегда был бы светлым);
 - старт приложения — чёрный экран без значка Capacitor, дальше анимированная заставка справочника;
 - цвет панели навигации под светлую/тёмную тему системы;
+- масштаб текста WebView фиксирован (крупный системный шрифт ломал вёрстку);
 - номер версии APK = версия справочника из version.json.
 """
 import json, os, re, sys, glob
@@ -80,7 +81,25 @@ w(styles_path, f'''<?xml version="1.0" encoding="utf-8"?>
 </resources>
 ''')
 
-# 4) версия APK
+# 4) масштаб текста WebView = 100%: системный «крупный шрифт» иначе раздувает текст и ломает вёрстку
+act = 'android/app/src/main/java/ru/mesoestetic/guide/MainActivity.java'
+w(act, """package ru.mesoestetic.guide;
+
+import android.os.Bundle;
+import com.getcapacitor.BridgeActivity;
+
+public class MainActivity extends BridgeActivity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getBridge() != null && getBridge().getWebView() != null) {
+            getBridge().getWebView().getSettings().setTextZoom(100);
+        }
+    }
+}
+""")
+
+# 5) версия APK
 g = 'android/app/build.gradle'
 s = open(g, encoding='utf-8').read()
 s2 = re.sub(r'versionCode\s+\d+', f'versionCode {build_no}', s)
