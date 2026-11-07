@@ -1,0 +1,71 @@
+name: Выпуск
+
+# Actions → «Выпуск» → Run workflow.
+# 1) забирает данные из Google-таблицы (если ссылки заданы в Settings → Secrets and variables → Actions → Variables);
+# 2) поднимает версию — установленные приложения получат обновление по воздуху;
+# 3) собирает APK, iOS и обновляет веб-версию.
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: 'Что нового (покажется в уведомлении об обновлении)'
+        required: false
+        default: 'Обновлены данные справочника'
+      from_sheet:
+        description: 'Забрать данные из Google-таблицы'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Данные из Google-таблицы
+        if: inputs.from_sheet
+        env:
+          SHEET_PRODUCTS_CSV: ${{ vars.SHEET_PRODUCTS_CSV }}
+          SHEET_LINES_CSV: ${{ vars.SHEET_LINES_CSV }}
+          SHEET_GLOSSARY_CSV: ${{ vars.SHEET_GLOSSARY_CSV }}
+        run: |
+          if [ -z "$SHEET_PRODUCTS_CSV$SHEET_LINES_CSV$SHEET_GLOSSARY_CSV" ]; then
+            echo "::warning::Ссылки на Google-таблицу не заданы (Settings → Secrets and variables → Actions → Variables). Выпускаю без синхронизации."
+          else
+            python3 tools/sheet_sync.py index.html
+          fi
+
+      - name: Новая версия
+        env:
+          NOTES: ${{ inputs.notes }}
+        run: |
+          python3 bump-version.py "${NOTES:-Обновлены данные справочника}"
+          V=$(python3 -c "import json;print(json.load(open('version.json'))['version'])")
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          git config user.name "mesoestetic-guide-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html version.json
+          git commit -m "Выпуск $V: ${NOTES:-обновлены данные справочника}"
+          git push
+
+      - name: Запустить сборки
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run build-apk.yml --ref main
+          gh workflow run build-ios.yml --ref main
+          gh workflow run pages.yml --ref main || echo "::warning::Веб-версия не запущена — включите Settings → Pages → Source: GitHub Actions."
+          {
+            echo "### Выпуск $VERSION готов"
+            echo ""
+            echo "- Установленные приложения предложат обновиться при следующем запуске (по воздуху)."
+            echo "- APK и iOS собираются — смотрите «Сборка APK» и «Сборка iOS» во вкладке Actions."
+          } >> "$GITHUB_STEP_SUMMARY"
