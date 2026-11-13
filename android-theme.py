@@ -5,7 +5,8 @@
 - старт приложения — чёрный экран без значка Capacitor, дальше анимированная заставка справочника;
 - цвет панели навигации под светлую/тёмную тему системы;
 - масштаб текста WebView фиксирован (крупный системный шрифт ломал вёрстку);
-- номер версии APK = версия справочника из version.json.
+- номер версии APK = версия справочника из version.json;
+- только портретная ориентация (автоповорот выключен).
 """
 import json, os, re, sys, glob
 
@@ -107,3 +108,10 @@ s2 = re.sub(r'versionName\s+"[^"]*"', f'versionName "{ver}"', s2)
 if s2 == s: sys.exit('не нашёл versionCode/versionName в build.gradle')
 open(g, 'w', encoding='utf-8').write(s2)
 print(f'version {ver} ({build_no}), splash api: {has_splash_api}')
+
+# только портретная ориентация: экран не поворачивается вместе с телефоном
+man = 'android/app/src/main/AndroidManifest.xml'
+m = open(man, encoding='utf-8').read()
+m = re.sub(r'\s*android:screenOrientation="[^"]*"', '', m)
+m = re.sub(r'(<activity\b)', r'\1\n            android:screenOrientation="portrait"', m, count=1)
+open(man, 'w', encoding='utf-8').write(m); print('portrait', man)

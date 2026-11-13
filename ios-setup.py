@@ -32,6 +32,10 @@ info['CFBundleVersion'] = build
 info['ITSAppUsesNonExemptEncryption'] = False
 info['UIViewControllerBasedStatusBarAppearance'] = True
 info['LSApplicationQueriesSchemes'] = info.get('LSApplicationQueriesSchemes', [])
+# только портретная ориентация (на iPad тоже — иначе вёрстка телефона растягивается боком)
+info['UISupportedInterfaceOrientations'] = ['UIInterfaceOrientationPortrait']
+info['UISupportedInterfaceOrientations~ipad'] = ['UIInterfaceOrientationPortrait', 'UIInterfaceOrientationPortraitUpsideDown']
+info['UIRequiresFullScreen'] = True
 plistlib.dump(info, open(p, 'wb'))
 
 # версия и в проекте Xcode (MARKETING_VERSION / CURRENT_PROJECT_VERSION)

@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="2026.11.10.1">
+<meta name="app-version" content="2026.11.14.1">
 <script>
 /* ── обновление по воздуху: если в памяти лежит более свежая версия справочника, запускаем её вместо встроенной */
 (function(){
-  var BUNDLED = '2026.11.10.1';
+  var BUNDLED = '2026.11.14.1';
   function cmp(a, b){ a = String(a).split('.'); b = String(b).split('.');
     for (var i = 0; i < Math.max(a.length, b.length); i++){ var d = (+a[i] || 0) - (+b[i] || 0); if (d) return d; } return 0; }
   window.__verCmp = cmp;
@@ -84,6 +84,10 @@ button{font:inherit;color:inherit}
 #splash .sp-claim .caret{display:inline-block;width:.09em;height:.95em;margin-left:.04em;background:currentColor;vertical-align:-.12em;opacity:0}
 #splash .sp-claim .caret.on{opacity:1;animation:blink .9s steps(1) infinite}
 #splash.done{opacity:0;visibility:hidden;pointer-events:none}
+#splash.waapi .sp-frame,#splash.waapi .sp-bg{transition:none}
+#splash.skip{background:var(--bg);transition-duration:.25s}
+#splash.skip .sp-lock,#splash.skip .sp-bg{display:none}
+.splashing .table.intro .tile{animation-play-state:paused}
 @keyframes blink{0%{opacity:1}50%{opacity:0}}
 @media (prefers-reduced-motion:reduce){#splash *{transition:none !important;animation:none !important}}
 
@@ -444,6 +448,14 @@ details.use[open] summary::after{content:" −"}
 .ptotal{display:flex;align-items:baseline;justify-content:space-between;gap:12px;border:1px solid var(--ink);padding:14px 16px;margin:16px 0 6px}
 .ptotal b{font-size:30px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .ptotal span{font-size:13px;color:var(--mute)}
+.psaved{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mute);margin:8px 0 0;min-height:18px}
+.psaved svg{width:15px;height:15px;flex:none}
+.psaved.flash{color:var(--ink)}
+.psaved.flash svg{animation:pop .45s var(--ease)}
+@keyframes pop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.25)}100%{transform:none;opacity:1}}
+.pdone{position:sticky;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:5;margin-top:22px}
+.pdone .btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.pdone .btn svg,.toast svg{width:18px;height:18px;flex:none}
 .pname{width:100%;font:inherit;font-size:24px;font-weight:600;border:0;border-bottom:1px solid var(--ink);background:none;color:var(--ink);padding:6px 0;margin-top:8px;border-radius:0}
 .pname:focus{outline:none;border-bottom-width:2px}
 .steps{list-style:none;margin:10px 0 0;padding:0}
@@ -531,6 +543,10 @@ details.use[open] summary::after{content:" −"}
 </head>
 <body>
 <div id="splash" aria-hidden="true"><div class="sp-bg"></div><div class="sp-lock" id="spLock"><svg class="sp-el" id="spEl" viewBox="37.1 29.7 140.6 140.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><path class="sp-frame" fill="currentColor" d="M 45.027344 162.363281 L 169.800781 162.363281 L 169.800781 37.585938 L 45.027344 37.585938 Z M 177.679688 170.238281 L 37.148438 170.238281 L 37.148438 29.707031 L 177.679688 29.707031 Z"/><path class="gl" data-l="me" data-x="106.3" fill="currentColor" d="M 55.410156 75.578125 L 69.828125 75.578125 L 81.078125 105.558594 L 92.195312 75.578125 L 106.34375 75.578125 L 106.34375 123.746094 L 95.496094 123.746094 L 95.496094 89.929688 L 82.15625 123.746094 L 78.585938 123.746094 L 65.179688 89.929688 L 65.179688 123.746094 L 55.410156 123.746094 Z M 55.410156 75.578125"/><path class="gl" data-l="me" data-x="146.0" fill="currentColor" d="M 136.523438 102.324219 C 136.183594 97 133.492188 94.441406 128.839844 94.441406 C 124.460938 94.441406 121.5 97.339844 120.757812 102.324219 Z M 110.71875 106.566406 L 110.71875 106.027344 C 110.71875 94.914062 118.601562 87.703125 128.839844 87.703125 C 137.9375 87.703125 146.019531 93.027344 146.019531 105.625 L 146.019531 108.320312 L 120.621094 108.320312 C 120.890625 114.179688 124.058594 117.546875 129.382812 117.546875 C 133.894531 117.546875 136.117188 115.59375 136.722656 112.632812 L 145.953125 112.632812 C 144.808594 120.246094 138.746094 124.488281 129.113281 124.488281 C 118.46875 124.488281 110.71875 117.820312 110.71875 106.566406"/><path class="gl" data-l="num" data-x="150.3" fill="currentColor" d="M 146.996094 49.921875 C 146.996094 48.894531 146.171875 48.207031 145.105469 48.207031 C 144.042969 48.207031 143.203125 48.859375 143.203125 49.941406 C 143.203125 51.023438 144.082031 51.679688 145.125 51.679688 C 146.210938 51.679688 146.996094 51.023438 146.996094 49.921875 M 147.3125 55.5625 C 147.3125 54.257812 146.359375 53.527344 145.105469 53.527344 C 143.875 53.527344 142.867188 54.257812 142.867188 55.582031 C 142.867188 56.910156 143.855469 57.636719 145.089844 57.636719 C 146.359375 57.636719 147.3125 56.890625 147.3125 55.5625 M 139.859375 55.863281 C 139.859375 54.238281 140.792969 53.0625 142.324219 52.519531 C 141.109375 52.015625 140.382812 51.082031 140.382812 49.738281 C 140.382812 47.421875 142.605469 46.09375 145.105469 46.09375 C 147.667969 46.09375 149.792969 47.441406 149.792969 49.71875 C 149.792969 51.0625 149.027344 51.980469 147.851562 52.5 C 149.421875 53.042969 150.300781 54.199219 150.300781 55.789062 C 150.300781 58.402344 148.058594 59.839844 145.089844 59.839844 C 142.136719 59.839844 139.859375 58.476562 139.859375 55.863281"/><path class="gl" data-l="num" data-x="161.5" fill="currentColor" d="M 151.457031 55.65625 L 154.242188 55.65625 C 154.410156 56.777344 154.859375 57.523438 156.386719 57.523438 C 157.75 57.523438 158.480469 56.574219 158.480469 55.152344 C 158.480469 53.714844 157.660156 52.820312 156.3125 52.820312 C 155.0625 52.820312 154.296875 53.265625 153.753906 53.882812 L 152.074219 53.882812 L 152.261719 46.28125 L 160.722656 46.28125 L 160.722656 48.578125 L 154.523438 48.578125 L 154.464844 51.921875 C 154.988281 51.285156 155.921875 50.691406 157.433594 50.691406 C 159.863281 50.691406 161.527344 52.351562 161.527344 55.191406 C 161.527344 58.027344 159.488281 59.839844 156.40625 59.839844 C 153.121094 59.839844 151.589844 58.046875 151.457031 55.65625"/><path class="gl" data-l="wm" data-x="70.9" fill="currentColor" d="M 55.953125 141.851562 L 58.660156 141.851562 L 58.660156 143.34375 C 59.148438 142.429688 60.195312 141.628906 61.648438 141.628906 C 62.9375 141.628906 63.910156 142.171875 64.375 143.328125 C 65.160156 142.148438 66.429688 141.628906 67.664062 141.628906 C 69.476562 141.628906 70.875 142.765625 70.875 145.363281 L 70.875 151.621094 L 68.1875 151.621094 L 68.1875 145.664062 C 68.1875 144.410156 67.625 143.847656 66.65625 143.847656 C 65.609375 143.847656 64.769531 144.523438 64.769531 145.847656 L 64.769531 151.621094 L 62.078125 151.621094 L 62.078125 145.664062 C 62.078125 144.410156 61.5 143.847656 60.546875 143.847656 C 59.5 143.847656 58.660156 144.523438 58.660156 145.847656 L 58.660156 151.621094 L 55.953125 151.621094 Z"/><path class="gl" data-l="wm" data-x="82.1" fill="currentColor" d="M 79.484375 145.679688 C 79.390625 144.207031 78.644531 143.496094 77.359375 143.496094 C 76.144531 143.496094 75.320312 144.296875 75.117188 145.679688 Z M 72.332031 146.859375 L 72.332031 146.707031 C 72.332031 143.625 74.519531 141.628906 77.359375 141.628906 C 79.878906 141.628906 82.121094 143.101562 82.121094 146.59375 L 82.121094 147.34375 L 75.078125 147.34375 C 75.152344 148.96875 76.03125 149.902344 77.507812 149.902344 C 78.757812 149.902344 79.375 149.359375 79.542969 148.535156 L 82.101562 148.535156 C 81.78125 150.648438 80.101562 151.824219 77.433594 151.824219 C 74.480469 151.824219 72.332031 149.976562 72.332031 146.859375"/><path class="gl" data-l="wm" data-x="91.4" fill="currentColor" d="M 83.046875 148.558594 L 85.570312 148.558594 C 85.679688 149.433594 86.109375 149.9375 87.285156 149.9375 C 88.332031 149.9375 88.820312 149.546875 88.820312 148.875 C 88.820312 148.203125 88.238281 147.921875 86.839844 147.714844 C 84.242188 147.324219 83.234375 146.578125 83.234375 144.671875 C 83.234375 142.636719 85.101562 141.628906 87.101562 141.628906 C 89.265625 141.628906 90.890625 142.414062 91.132812 144.652344 L 88.648438 144.652344 C 88.5 143.847656 88.054688 143.476562 87.121094 143.476562 C 86.242188 143.476562 85.738281 143.886719 85.738281 144.484375 C 85.738281 145.101562 86.203125 145.34375 87.625 145.546875 C 90.070312 145.90625 91.414062 146.519531 91.414062 148.613281 C 91.414062 150.722656 89.882812 151.824219 87.304688 151.824219 C 84.671875 151.824219 83.140625 150.667969 83.046875 148.558594"/><path class="gl" data-l="wm" data-x="102.6" fill="currentColor" d="M 99.824219 146.800781 L 99.824219 146.671875 C 99.824219 144.800781 98.945312 143.683594 97.433594 143.683594 C 95.941406 143.683594 95.042969 144.765625 95.042969 146.632812 L 95.042969 146.78125 C 95.042969 148.648438 95.902344 149.769531 97.433594 149.769531 C 98.945312 149.769531 99.824219 148.648438 99.824219 146.800781 M 92.277344 146.835938 L 92.277344 146.6875 C 92.277344 143.625 94.5 141.628906 97.433594 141.628906 C 100.367188 141.628906 102.570312 143.585938 102.570312 146.632812 L 102.570312 146.78125 C 102.570312 149.863281 100.347656 151.824219 97.417969 151.824219 C 94.5 151.824219 92.277344 149.882812 92.277344 146.835938"/><path class="gl" data-l="wm" data-x="113.3" fill="currentColor" d="M 110.6875 145.679688 C 110.59375 144.207031 109.847656 143.496094 108.558594 143.496094 C 107.34375 143.496094 106.523438 144.296875 106.316406 145.679688 Z M 103.535156 146.859375 L 103.535156 146.707031 C 103.535156 143.625 105.722656 141.628906 108.558594 141.628906 C 111.082031 141.628906 113.320312 143.101562 113.320312 146.59375 L 113.320312 147.34375 L 106.28125 147.34375 C 106.355469 148.96875 107.234375 149.902344 108.707031 149.902344 C 109.960938 149.902344 110.574219 149.359375 110.746094 148.535156 L 113.304688 148.535156 C 112.984375 150.648438 111.304688 151.824219 108.632812 151.824219 C 105.683594 151.824219 103.535156 149.976562 103.535156 146.859375"/><path class="gl" data-l="wm" data-x="122.6" fill="currentColor" d="M 114.25 148.558594 L 116.769531 148.558594 C 116.882812 149.433594 117.3125 149.9375 118.488281 149.9375 C 119.535156 149.9375 120.019531 149.546875 120.019531 148.875 C 120.019531 148.203125 119.441406 147.921875 118.042969 147.714844 C 115.445312 147.324219 114.4375 146.578125 114.4375 144.671875 C 114.4375 142.636719 116.304688 141.628906 118.304688 141.628906 C 120.46875 141.628906 122.09375 142.414062 122.335938 144.652344 L 119.851562 144.652344 C 119.703125 143.847656 119.253906 143.476562 118.320312 143.476562 C 117.441406 143.476562 116.9375 143.886719 116.9375 144.484375 C 116.9375 145.101562 117.40625 145.34375 118.824219 145.546875 C 121.273438 145.90625 122.617188 146.519531 122.617188 148.613281 C 122.617188 150.722656 121.085938 151.824219 118.507812 151.824219 C 115.875 151.824219 114.34375 150.667969 114.25 148.558594"/><path class="gl" data-l="wm" data-x="129.2" fill="currentColor" d="M 124.410156 148.726562 L 124.410156 143.777344 L 123.160156 143.777344 L 123.160156 141.851562 L 124.410156 141.851562 L 124.410156 139.742188 L 127.101562 139.742188 L 127.101562 141.851562 L 129.15625 141.851562 L 129.15625 143.777344 L 127.101562 143.777344 L 127.101562 148.480469 C 127.101562 149.265625 127.492188 149.640625 128.183594 149.640625 C 128.59375 149.640625 128.894531 149.582031 129.210938 149.453125 L 129.210938 151.542969 C 128.835938 151.675781 128.296875 151.804688 127.566406 151.804688 C 125.511719 151.804688 124.410156 150.761719 124.410156 148.726562"/><path class="gl" data-l="wm" data-x="139.7" fill="currentColor" d="M 137.023438 145.679688 C 136.929688 144.207031 136.183594 143.496094 134.894531 143.496094 C 133.679688 143.496094 132.859375 144.296875 132.65625 145.679688 Z M 129.871094 146.859375 L 129.871094 146.707031 C 129.871094 143.625 132.058594 141.628906 134.894531 141.628906 C 137.417969 141.628906 139.65625 143.101562 139.65625 146.59375 L 139.65625 147.34375 L 132.617188 147.34375 C 132.691406 148.96875 133.570312 149.902344 135.046875 149.902344 C 136.296875 149.902344 136.914062 149.359375 137.082031 148.535156 L 139.640625 148.535156 C 139.320312 150.648438 137.640625 151.824219 134.96875 151.824219 C 132.019531 151.824219 129.871094 149.976562 129.871094 146.859375"/><path class="gl" data-l="wm" data-x="146.2" fill="currentColor" d="M 141.429688 148.726562 L 141.429688 143.777344 L 140.175781 143.777344 L 140.175781 141.851562 L 141.429688 141.851562 L 141.429688 139.742188 L 144.117188 139.742188 L 144.117188 141.851562 L 146.171875 141.851562 L 146.171875 143.777344 L 144.117188 143.777344 L 144.117188 148.480469 C 144.117188 149.265625 144.511719 149.640625 145.199219 149.640625 C 145.613281 149.640625 145.910156 149.582031 146.226562 149.453125 L 146.226562 151.542969 C 145.855469 151.675781 145.3125 151.804688 144.585938 151.804688 C 142.53125 151.804688 141.429688 150.761719 141.429688 148.726562"/><path class="gl" data-l="wm" data-x="150.5" fill="currentColor" d="M 147.660156 141.851562 L 150.347656 141.851562 L 150.347656 151.621094 L 147.660156 151.621094 Z M 147.453125 139.050781 C 147.453125 138.210938 148.125 137.574219 148.984375 137.574219 C 149.863281 137.574219 150.535156 138.210938 150.535156 139.050781 C 150.535156 139.890625 149.863281 140.527344 148.984375 140.527344 C 148.125 140.527344 147.453125 139.890625 147.453125 139.050781"/><path class="gl" data-l="wm" data-x="161.5" fill="currentColor" d="M 151.832031 146.859375 L 151.832031 146.707031 C 151.832031 143.550781 154.089844 141.628906 156.875 141.628906 C 159.132812 141.628906 161.226562 142.617188 161.46875 145.417969 L 158.910156 145.417969 C 158.722656 144.28125 158.03125 143.757812 156.929688 143.757812 C 155.53125 143.757812 154.597656 144.800781 154.597656 146.671875 L 154.597656 146.820312 C 154.597656 148.78125 155.472656 149.789062 156.988281 149.789062 C 158.070312 149.789062 158.949219 149.152344 159.078125 147.902344 L 161.527344 147.902344 C 161.375 150.21875 159.695312 151.824219 156.855469 151.824219 C 154 151.824219 151.832031 150.050781 151.832031 146.859375"/><path class="gl" data-l="r" data-x="191.6" fill="currentColor" d="M 186.96875 34.007812 C 187.398438 34.007812 187.625 33.824219 187.625 33.457031 L 187.625 33.4375 C 187.625 33.066406 187.378906 32.921875 186.96875 32.921875 L 186.558594 32.921875 L 186.558594 34.007812 Z M 185.289062 31.957031 L 187.03125 31.957031 C 188.199219 31.957031 188.855469 32.433594 188.855469 33.375 L 188.855469 33.394531 C 188.855469 34.046875 188.503906 34.398438 188.035156 34.601562 L 189.121094 36.445312 L 187.808594 36.445312 L 186.886719 34.828125 L 186.558594 34.828125 L 186.558594 36.445312 L 185.289062 36.445312 Z M 190.734375 34.253906 C 190.734375 32.019531 189.160156 30.484375 186.96875 30.484375 C 184.777344 30.484375 183.203125 32.039062 183.203125 34.273438 C 183.203125 36.527344 184.859375 38.023438 186.96875 38.023438 C 189.097656 38.023438 190.734375 36.484375 190.734375 34.253906 M 182.320312 34.273438 C 182.320312 31.753906 184.367188 29.707031 186.96875 29.707031 C 189.589844 29.707031 191.597656 31.734375 191.597656 34.253906 C 191.597656 36.816406 189.546875 38.800781 186.96875 38.800781 C 184.386719 38.800781 182.320312 36.835938 182.320312 34.273438"/><rect class="sp-cur" id="spCur" x="50" y="75" width="3.6" height="50" fill="currentColor"/></svg><div class="sp-claim" id="spClaim"></div></div></div>
+<script>/* заставка — только при первом запуске за день */
+try { var _d = new Date(), _k = _d.getFullYear() + '-' + (_d.getMonth() + 1) + '-' + _d.getDate();
+  if (localStorage.getItem('splash.day') === _k && sessionStorage.getItem('splash.quick') !== '1') document.getElementById('splash').classList.add('skip');
+  else document.documentElement.classList.add('splashing'); } catch (e) {}</script>
 
 <header class="top"><div class="wrap">
   <button class="back" id="back" aria-label="Назад" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg></button>
@@ -1260,7 +1276,7 @@ function bindSearch(){
 const MEDALS = [['gold', 95, 'Золото', '#D9B44A', '#F6E7A8', '#9C7A1E'], ['silver', 85, 'Серебро', '#A9ADB3', '#EEF0F2', '#6E737A'], ['bronze', 75, 'Бронза', '#B5763A', '#E9BE90', '#7A4A20']];
 const medalFor = pct => MEDALS.find(m => pct >= m[1]) || null;
 const TESTS = () => [
-  ...linesAZ.map(l => ({id: l.id, sym: l.sym, color: l.color, name: l.name, sub: l.ru, pool: byLine(l.id).filter(p => !p.disc), n: 10})),
+  ...linesAZ.map(l => ({id: l.id, sym: l.sym, color: l.color, name: l.name, sub: l.ru, pool: byLine(l.id).filter(p => !p.disc)})).map(t => ({...t, n: Math.min(10, Math.max(6, t.pool.length * 4))})),
   {id: 'me-home', sym: 'Me', tag: 'home', color: '#231F20', name: 'Me home', sub: 'весь домашний уход', pool: DATA.products.filter(p => p.kind === 'home' && !p.disc), n: 15},
   {id: 'me-prof', sym: 'Me', tag: 'prof', color: '#231F20', name: 'Me prof', sub: 'весь кабинетный ассортимент', pool: DATA.products.filter(p => p.kind !== 'home' && !p.disc), n: 15}
 ];
@@ -1271,40 +1287,83 @@ const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--){ const
 const pick = (a, n) => shuffle(a).slice(0, n);
 const effKey = s => norm(s).split(/[^а-яa-z]+/).filter(w => w.length > 4).map(w => w.slice(0, 5));
 /* генератор вопросов: всё берётся из данных справочника, поэтому тесты сами обновляются вместе с ассортиментом */
+/* категории глоссария, которые не годятся для вопросов про «активы»: основа, ПАВ, консерванты и т. п. */
+const AUX_CAT = new Set(['Эмульгаторы и ПАВ', 'Консерванты и стабилизаторы', 'Основа и растворители', 'Загустители и текстура', 'Регуляторы pH и соли', 'Силиконы', 'Красители и пигменты', 'Отдушки и эфирные масла', 'Масла и липиды']);
+const NOT_ACTIVE = new Set(['citric']);   // лимонная кислота в составах — регулятор pH, а не актив
+let COMMON = null;   // компоненты, которые есть в каждом третьем препарате (глицерин и т. п.), — вопрос о них ничего не проверяет
+const isCommon = id => { if (!COMMON){ const c = {}, ps = DATA.products.filter(p => p.inci.length); ps.forEach(p => new Set(p.inci.flatMap(s => s.items.map(i => i.g)).filter(Boolean)).forEach(g => c[g] = (c[g] || 0) + 1)); COMMON = new Set(Object.keys(c).filter(g => c[g] > ps.length / 3)); } return COMMON.has(id); };
+const isActive = g => g && !AUX_CAT.has(g.cat) && !g.complex && !NOT_ACTIVE.has(g.id) && !isCommon(g.id);
+const isSpf = p => /spf/i.test(p.en) || p.line === 'mesoprotech';
+const fitsSpf = (g, p) => g.cat !== 'Солнцезащитные фильтры' || isSpf(p);   // фильтры — только в вопросах про SPF
+/* близкие запросы: неверный вариант не должен задевать ни одну группу, которую решает препарат */
+const NEED_GROUPS = [['морщины', 'потеря упругости', 'фотостарение', 'зона вокруг глаз', 'тусклость'], ['пигментация', 'тусклость', 'фотостарение'],
+  ['акне и поры'], ['покраснение и купероз', 'раздражение', 'после процедур'], ['обезвоженность'], ['волосы'], ['тело и целлюлит'], ['губы']];
+const GENERIC_NEEDS = new Set(['обезвоженность', 'раздражение', 'тусклость']);   // «увлажняет», «успокаивает» верно почти для любого ухода
+const BROAD_EFF = /воспал|успока|раздраж|увлажн|питает|сияни|комфорт/;   // такие эффекты могут оказаться правдой и для «чужого» препарата
+const NICHE = ['волосы', 'тело и целлюлит', 'губы'];                        // эффекты из этих зон в вопросах про лицо — слишком лёгкие
+const pNeedsW = p => { const n = new Set(pNeeds(p)); if (p.act.some(a => GL[a] && /Ретиноиды|Кислоты/.test(GL[a].cat))) n.add('акне и поры'); return n; };
+/* неверные варианты без повторов по смыслу: «уменьшает покраснения» и «снижает покраснение» в одном вопросе не встретятся */
+const pickDistinct = (arr, n, keyOf) => { const out = [], used = new Set(); for (const x of shuffle(arr)){ const k = keyOf(x); if (k.some(y => used.has(y))) continue; k.forEach(y => used.add(y)); out.push(x); if (out.length === n) break; } return out; };
+const widen = need => new Set(NEED_GROUPS.filter(g => g.some(x => need.has(x))).flat().concat([...need]));
+const STEP_IDEAL = /^(база|первый этап|перед|завершени|финальн)/i;   // это этап процедуры, а не описание клиента
+/* к каким запросам относится препарат: по тем же основам слов, что и фильтры умного поиска */
+const NEED_ALTS = () => FACETS.need.v.map(v => [v[0], v[1].split('|').map(norm)]);
+const memo = f => { const m = new Map(); return k => { if (!m.has(k)) m.set(k, f(k)); return m.get(k); }; };
+let NA = null; const needsOf = memo(txt => { NA = NA || NEED_ALTS(); const t = norm(txt); return NA.filter(v => anyIn(t, v[1])).map(v => v[0]); });
+let NEEDS = null;
+const pNeeds = p => { if (!NEEDS) NEEDS = new Map(); if (!NEEDS.has(p.code)) NEEDS.set(p.code, new Set(needsOf([p.ideal, p.skin.join(' '), p.eff.join(' '), p.desc, p.ru].join(' ')))); return NEEDS.get(p.code); };
+const overlap = (a, b) => [...a].some(x => b.has(x));
+const INCI_T = new Map(); const inciText = p => { if (!INCI_T.has(p.code)) INCI_T.set(p.code, norm(p.inci.flatMap(s => s.items.map(i => i.t)).join(' '))); return INCI_T.get(p.code); };
+const inProduct = (g, p) => { const t = inciText(p); return p.act.includes(g.id) || p.inci.some(s => s.items.some(i => i.g === g.id)) || g.inci.some(n => n.length > 3 && t.includes(norm(n))); };
+/* генератор вопросов: всё берётся из данных справочника, поэтому тесты сами обновляются вместе с ассортиментом.
+   Неверные варианты подбираются так, чтобы они точно не подходили: другой запрос клиента, другой эффект, компонента нет в составе */
 function makeQuestions(t){
   const pool = t.pool, all = DATA.products.filter(p => !p.disc), Q = [];
   const nameOf = p => `«${p.ru}» (${p.en})`;
+  const lb = x => `${x.ru} (${x.en})`;
+  const sameFamily = (x, p) => (x.kind === 'home') === (p.kind === 'home');
+  const actives = DATA.glossary.filter(isActive);
   const gens = [
-    // 1. какой препарат подходит клиенту
-    () => { const p = pick(pool, 1)[0]; const others = pick((pool.length >= 4 ? pool : all).filter(x => x.code !== p.code && x.ideal !== p.ideal), 3); if (others.length < 3) return null;
-      const lb = x => `${x.ru} (${x.en})`;
-      return {q: 'Какой препарат лучше всего подходит такому клиенту?', ctx: p.ideal, a: lb(p), w: others.map(lb), why: `${p.en} — ${p.ru}.`, code: p.code}; },
-    // 2. главный компонент
-    () => { const p = pick(pool.filter(x => x.act.some(a => GL[a])), 1)[0]; if (!p) return null; const a = GL[pick(p.act.filter(x => GL[x]), 1)[0]];
-      const inP = new Set([...p.act, ...p.inci.flatMap(s => s.items.map(i => i.g)).filter(Boolean)]);
-      const w = pick(DATA.glossary.filter(g => !inP.has(g.id) && !g.complex), 3).map(g => g.ru);
-      return {q: `Какой из компонентов — главный действующий в ${nameOf(p)}?`, a: a.ru, w, why: `${a.ru}: ${a.text}`, code: p.code}; },
-    // 3. заявленный эффект
-    () => { const p = pick(pool, 1)[0]; const right = pick(p.eff, 1)[0]; const keys = new Set(p.eff.flatMap(effKey));
-      const w = pick([...new Set(all.flatMap(x => x.eff))].filter(e => !effKey(e).some(k => keys.has(k))), 3);
-      return w.length < 3 ? null : {q: `Какой эффект заявлен для ${nameOf(p)}?`, a: right, w, why: `Эффекты: ${p.eff.join('; ')}.`, code: p.code}; },
-    // 4. формат применения
-    () => { const p = pick(pool, 1)[0]; const opts = {home: 'Домашний уход', prof: 'Профессиональное применение в кабинете', med: 'Медицинское применение, только врач'};
-      return {q: `Где применяют ${nameOf(p)}?`, a: opts[p.kind], w: Object.values(opts).filter(x => x !== opts[p.kind]), why: `${p.ru} — ${KIND_RU[p.kind]}.`, code: p.code}; },
-    // 6. есть ли ингредиент в составе
-    () => { const p = pick(pool.filter(x => x.inci.length), 1)[0]; if (!p) return null; const has = new Set(p.inci.flatMap(s => s.items.map(i => i.g)).filter(Boolean));
-      const inGl = [...has].filter(g => GL[g]); if (!inGl.length) return null; const a = GL[pick(inGl, 1)[0]];
-      const w = pick(DATA.glossary.filter(g => !has.has(g.id) && !g.complex && !p.act.includes(g.id)), 3).map(g => g.ru);
-      return {q: `Что из этого входит в состав ${nameOf(p)}?`, a: a.ru, w, why: `${a.ru} указан в INCI: ${a.inci[0]}.`, code: p.code}; },
-    // 7. линия препарата (для сводных тестов)
-    () => { if (t.id.indexOf('me-') !== 0) return null; const p = pick(pool, 1)[0], l = LINE[p.line];
-      return {q: `К какой линии относится ${nameOf(p)}?`, a: l.name, w: pick(DATA.lines.filter(x => x.id !== l.id), 3).map(x => x.name), why: `${l.name} — ${l.ru}.`, code: p.code}; }
-  ];
-  const seen = new Set(); let guard = 0;
-  while (Q.length < t.n && guard++ < 400){
-    const q = gens[Math.random() * gens.length | 0]();
+    // 1. какой препарат подходит клиенту: у неверных вариантов нет ни одного общего запроса с правильным
+    [3, () => { const p = pick(pool.filter(x => x.ideal && !STEP_IDEAL.test(x.ideal) && [...pNeeds(x)].some(n => n !== 'обезвоженность' && n !== 'тусклость')), 1)[0]; if (!p) return null; const need = widen(pNeedsW(p));
+      const ok = x => x.code !== p.code && x.ru !== p.ru && x.ideal && !STEP_IDEAL.test(x.ideal) && pNeeds(x).size && !overlap(widen(pNeedsW(x)), need) && sameFamily(x, p);
+      let others = pick(pool.filter(ok), 3); if (others.length < 3) others = [...others, ...pick(all.filter(x => ok(x) && !others.includes(x)), 3 - others.length)];
+      if (others.length < 3) return null;
+      return {q: 'Какой препарат лучше всего подходит такому клиенту?', ctx: p.ideal, a: lb(p), w: others.map(lb), why: `${p.en}: ${p.eff.slice(0, 3).join('; ')}.`, code: p.code}; }],
+    // 2. ключевой актив: только настоящие активы, без основы и консервантов; неверных точно нет в составе
+    [2, () => { const key = x => x.act.filter(a => isActive(GL[a]) && fitsSpf(GL[a], x));
+      const p = pick(pool.filter(x => key(x).length), 1)[0]; if (!p) return null;
+      const a = GL[pick(key(p), 1)[0]];
+      const w = pick(actives.filter(g => fitsSpf(g, p) && !inProduct(g, p)), 3).map(g => g.ru);
+      return {q: `Какой компонент — один из ключевых активов ${nameOf(p)}?`, a: a.ru, w, why: `${a.ru}: ${a.text}`, code: p.code}; }],
+    // 3. заявленный эффект: неверные эффекты относятся к другим запросам (не к тем, что решает препарат)
+    [3, () => { const p = pick(pool.filter(x => x.eff.length), 1)[0]; if (!p) return null; const need = widen(pNeedsW(p));
+      const right = pick(p.eff.filter(e => needsOf(e).length), 1)[0] || pick(p.eff, 1)[0];
+      const own = new Set(p.eff.map(norm));
+      const cand = [...new Set(all.filter(x => sameFamily(x, p)).flatMap(x => x.eff))].filter(e => { const n = needsOf(e); return n.length && !own.has(norm(e)) && !/\(/.test(e) && !BROAD_EFF.test(norm(e)) && !n.some(x => need.has(x) || GENERIC_NEEDS.has(x) || NICHE.includes(x) && !need.has(x) && !NICHE.some(y => need.has(y))); });
+      const w = pickDistinct(cand, 3, e => [...effKey(e), ...needsOf(e)]);
+      return w.length < 3 ? null : {q: `Какой эффект заявлен для ${nameOf(p)}?`, a: right, w, why: `Эффекты: ${p.eff.join('; ')}.`, code: p.code}; }],
+    // 4. формат применения (простой вопрос, поэтому редкий)
+    [1, () => { const p = pick(pool, 1)[0]; const opts = {home: 'Домашний уход', prof: 'Профессиональное применение в кабинете', med: 'Медицинское применение, только врач'};
+      return {q: `Где применяют ${nameOf(p)}?`, a: opts[p.kind], w: Object.values(opts).filter(x => x !== opts[p.kind]), why: `${p.ru} — ${KIND_RU[p.kind]}.`, code: p.code}; }],
+    // 5. какой актив есть в составе: правильный — актив из INCI, неверные — активы, которых в составе нет
+    [2, () => { const p = pick(pool.filter(x => x.inci.length), 1)[0]; if (!p) return null;
+      const has = [...new Set(p.inci.flatMap(s => s.items.map(i => i.g)).filter(Boolean))].map(g => GL[g]).filter(g => isActive(g) && fitsSpf(g, p));
+      if (!has.length) return null; const a = pick(has, 1)[0];
+      const w = pick(actives.filter(g => fitsSpf(g, p) && !inProduct(g, p)), 3).map(g => g.ru);
+      return {q: `Какой из этих активных компонентов есть в составе ${nameOf(p)}?`, a: a.ru, w, why: `${a.ru} указан в INCI как ${a.inci[0]}.`, code: p.code}; }],
+    // 6. линия препарата (только в сводных тестах)
+    [t.id.indexOf('me-') === 0 ? 2 : 0, () => { const p = pick(pool, 1)[0], l = LINE[p.line];
+      return {q: `К какой линии относится ${nameOf(p)}?`, a: l.name, w: pick(DATA.lines.filter(x => x.id !== l.id), 3).map(x => x.name), why: `${l.name} — ${l.ru}.`, code: p.code}; }]
+  ].filter(g => g[0] > 0);
+  const total = gens.reduce((s, g) => s + g[0], 0);
+  const roll = () => { let r = Math.random() * total; for (const g of gens){ if ((r -= g[0]) < 0) return g[1]; } return gens[0][1]; };
+  const seen = new Set(), perP = {}, maxPer = Math.max(pool.length >= t.n ? 1 : 2, Math.ceil(t.n / pool.length)); let guard = 0;
+  while (Q.length < t.n && guard++ < 600){
+    const q = roll()();
     if (!q || q.w.length < 2 || q.w.includes(q.a) || new Set(q.w).size !== q.w.length) continue;
-    const key = q.q + '|' + q.a; if (seen.has(key)) continue; seen.add(key);
+    if ((perP[q.code] || 0) >= maxPer + (guard > 400 ? 1 : 0)) continue;
+    const key = q.q + '|' + q.a; if (seen.has(key)) continue; seen.add(key); perP[q.code] = (perP[q.code] || 0) + 1;
     q.opts = shuffle([q.a, ...q.w.slice(0, 3)]); Q.push(q);
   }
   return Q;
@@ -1579,7 +1638,14 @@ const protoAll = () => { try { return JSON.parse(lsGet(PK) || '[]'); } catch (e)
 const protoSave = arr => lsSet(PK, JSON.stringify(arr));
 const protoGet = id => protoAll().find(x => x.id === id);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-function protoPut(pr){ const a = protoAll(); const i = a.findIndex(x => x.id === pr.id); pr.updated = Date.now(); if (i < 0) a.unshift(pr); else a[i] = pr; protoSave(a); lsSet('proto.cur', pr.id); }
+function protoPut(pr){ const a = protoAll(); const i = a.findIndex(x => x.id === pr.id); pr.updated = Date.now(); if (i < 0) a.unshift(pr); else a[i] = pr; protoSave(a); lsSet('proto.cur', pr.id); protoSavedMark(); }
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg>';
+/* видимое подтверждение автосохранения: «Сохранено · только что» */
+function protoSavedMark(){ const el = $('#psaved'); if (!el) return; el.innerHTML = CHECK + '<span>Сохранено · только что</span>'; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  clearTimeout(protoSavedMark.tm); protoSavedMark.tm = setTimeout(() => { el.classList.remove('flash'); el.innerHTML = CHECK + '<span>Всё сохраняется автоматически на этом устройстве</span>'; }, 2200); }
+/* пустые черновики («Новый протокол» без названия и шагов) не копятся в списке */
+const protoPurge = () => { const a = protoAll(), b = a.filter(x => (x.name || '').trim() || x.steps.length); if (b.length !== a.length) protoSave(b); return b; };
+const protoAutoName = () => 'Протокол от ' + new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit'});
 const fmtMin = m => { m = Math.round((+m || 0) * 2) / 2; if (!m) return '0 мин'; const h = Math.floor(m / 60), r = +(m - h * 60).toFixed(1); return (h ? h + ' ч' : '') + (h && r ? ' ' : '') + (r ? String(r).replace('.', ',') + ' мин' : ''); };
 const protoTotal = pr => pr.steps.reduce((s, x) => s + (+x.min || 0), 0);
 /* время экспозиции из текста «Применение»: «на 10–15 минут» → 10, «8 часов» → 480 */
@@ -1589,11 +1655,11 @@ function guessMin(p){
 }
 const stepFromProduct = p => ({id: uid(), code: p.code, title: p.ru, min: guessMin(p), note: ''});
 function vProtoList(){
-  const a = protoAll();
+  const a = protoPurge();
   return `<div class="wrap"><h1>Протоколы</h1>
-    <p class="lead">Соберите процедуру из препаратов: порядок шагов, время экспозиции каждого и итоговое время протокола. Протоколы хранятся на этом устройстве, ими можно поделиться картинкой или PDF.</p>
+    <p class="lead">Соберите процедуру из препаратов: порядок шагов, время экспозиции каждого и итоговое время протокола. Всё сохраняется автоматически на этом устройстве — выходить можно в любой момент. Протоколом можно поделиться картинкой или PDF.</p>
     <div class="rowbtns"><button class="btn pri" type="button" data-pa="new">Новый протокол</button></div>
-    ${a.length ? `<ul class="plist2">${a.map(pr => `<li><a href="#/proto/${pr.id}"><span><b>${esc(pr.name || 'Без названия')}</b><small>${pr.steps.length} ${plural(pr.steps.length, 'шаг', 'шага', 'шагов')} · изменён ${new Date(pr.updated).toLocaleDateString('ru-RU')}</small></span><span class="t">${fmtMin(protoTotal(pr))}</span></a></li>`).join('')}</ul>`
+    ${a.length ? `<h2>Мои протоколы · ${a.length}</h2><ul class="plist2">${a.map(pr => `<li><a href="#/proto/${pr.id}"><span><b>${esc(pr.name || 'Без названия')}</b><small>${pr.steps.length} ${plural(pr.steps.length, 'шаг', 'шага', 'шагов')} · изменён ${new Date(pr.updated).toLocaleDateString('ru-RU')}</small></span><span class="t">${fmtMin(protoTotal(pr))}</span></a></li>`).join('')}</ul>`
       : '<p class="empty">Пока нет ни одного протокола. Создайте новый или нажмите «В протокол» на странице препарата.</p>'}
   </div>`;
 }
@@ -1602,12 +1668,14 @@ function vProto(id){
   const pr = protoGet(id); if (!pr) return vNotFound();
   return `<div class="wrap" id="proto" data-id="${pr.id}">
     <input class="pname" id="pname" value="${esc(pr.name)}" placeholder="Название протокола" aria-label="Название протокола" autocomplete="off">
+    <p class="psaved" id="psaved" aria-live="polite">${CHECK}<span>Всё сохраняется автоматически на этом устройстве</span></p>
     <div class="ptotal"><span>Время протокола<br><span id="pcount">${pr.steps.length} ${plural(pr.steps.length, 'шаг', 'шага', 'шагов')}</span></span><b id="ptotal">${fmtMin(protoTotal(pr))}</b></div>
     <ol class="steps" id="psteps">${pr.steps.map((st, i) => stepHtml(st, i, pr.steps.length)).join('')}</ol>
     ${pr.steps.length ? '' : '<p class="empty" style="margin-top:10px">Добавьте первый шаг: найдите препарат ниже или впишите свой шаг (очищение, массаж, маска).</p>'}
     <div class="padd"><label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>
       <input id="padd" type="search" placeholder="Добавить шаг: препарат, артикул или свой шаг" autocomplete="off" aria-label="Добавить шаг"></label><div class="res" id="pres"></div></div>
-    <div class="rowbtns"><button class="btn pri" type="button" data-pa="share">${'Поделиться'}</button><button class="btn" type="button" data-pa="dup">Копия</button><button class="btn" type="button" data-pa="del">Удалить</button></div>
+    <div class="rowbtns"><button class="btn" type="button" data-pa="share">Поделиться</button><button class="btn" type="button" data-pa="dup">Копия</button><button class="btn" type="button" data-pa="del">Удалить</button></div>
+    <div class="pdone"><button class="btn pri" type="button" data-pa="done">${CHECK}Готово — сохранить и выйти</button></div>
   </div>`;
 }
 function stepHtml(st, i, n){
@@ -1620,7 +1688,7 @@ function stepHtml(st, i, n){
   </li>`;
 }
 function protoRefresh(pr, full){
-  if (full){ $('#view').innerHTML = vProto(pr.id); bindProto(); return; }
+  if (full){ $('#view').innerHTML = vProto(pr.id); bindProto(); protoSavedMark(); return; }
   $('#ptotal').textContent = fmtMin(protoTotal(pr)); $('#pcount').textContent = pr.steps.length + ' ' + plural(pr.steps.length, 'шаг', 'шага', 'шагов');
 }
 function bindProto(){
@@ -1646,6 +1714,11 @@ function bindProto(){
     else if (a === 'down' && i < pr.steps.length - 1){ [pr.steps[i + 1], pr.steps[i]] = [pr.steps[i], pr.steps[i + 1]]; }
     else if (a === 'rm'){ pr.steps.splice(i, 1); }
     else if (a === 'share'){ shareSheet(pr.name || 'Протокол', protoCard(pr)); return; }
+    else if (a === 'done'){
+      if (!pr.steps.length && !(pr.name || '').trim()){ protoSave(protoAll().filter(x => x.id !== id)); location.hash = '#/proto'; return; }
+      if (!(pr.name || '').trim()) pr.name = protoAutoName();
+      protoPut(pr); location.hash = '#/proto';
+      toast(`${CHECK}<span>Сохранено: «${esc(pr.name)}» · ${pr.steps.length} ${plural(pr.steps.length, 'шаг', 'шага', 'шагов')}, ${fmtMin(protoTotal(pr))}</span><button type="button" class="x" aria-label="Закрыть">✕</button>`, 3500); return; }
     else if (a === 'dup'){ const c = JSON.parse(JSON.stringify(pr)); c.id = uid(); c.name = (pr.name || 'Протокол') + ' (копия)'; protoPut(c); location.hash = '#/proto/' + c.id; return; }
     else if (a === 'del'){ if (confirmDel(b)){ protoSave(protoAll().filter(x => x.id !== id)); location.hash = '#/proto'; } return; }
     else return;
@@ -1663,7 +1736,7 @@ function protoCard(pr){
 }
 /* «В протокол» со страницы препарата */
 function addToProto(code){
-  const a = protoAll(), p = PROD[code];
+  const a = protoPurge(), p = PROD[code];
   openSheet(`<h3>Добавить в протокол</h3><p class="sub">${esc(p.ru)}${guessMin(p) ? ' · экспозиция ' + fmtMin(guessMin(p)) : ''}</p>
     <div class="opts"><button type="button" data-to="new">${IC.plus}<span>Новый протокол</span></button>
     ${a.slice(0, 8).map(pr => `<button type="button" data-to="${pr.id}">${IC.clock}<span>${esc(pr.name || 'Без названия')}<small>${pr.steps.length} ${plural(pr.steps.length, 'шаг', 'шага', 'шагов')} · ${fmtMin(protoTotal(pr))}</small></span></button>`).join('')}</div>`, (box, close) => {
@@ -1694,50 +1767,68 @@ if ('serviceWorker' in navigator && location.protocol === 'https:' && location.h
 /* ── заставка: проявляется белый фон → растёт рамка → печатается «Me» → элемент уходит влево → печатается слоган */
 const CLAIM = ['главный элемент', 'для экспертов', 'в уходе за кожей'];
 const CUR = {me:[75, 50, 3.6], num:[45.6, 14.8, 1.8], wm:[137.2, 15, 1.8]};
-let splashTimers = [];
+let splashRaf = 0, splashAnims = [];
 function finishSplash(){
   if (!splashUp) return; splashUp = false;
-  splashTimers.forEach(clearTimeout);
-  $('#splash').classList.add('done');
+  cancelAnimationFrame(splashRaf);
+  const sp = $('#splash'); sp.classList.add('done');
+  document.documentElement.classList.remove('splashing');      // плитки главной появляются, пока заставка растворяется
   paintBars();
-  setTimeout(() => $('#splash')?.remove(), 600);
+  setTimeout(() => { splashAnims.forEach(a => { try { a.cancel(); } catch (e) {} }); sp.remove(); }, 600);
   if (IS_APP) setTimeout(() => otaCheck(false), 1500);
 }
 function runSplash(){
   const sp = $('#splash'), el = $('#spEl'), claim = $('#spClaim'), cur = $('#spCur');
+  if (sp.classList.contains('skip')) return requestAnimationFrame(finishSplash);
   let quick = false; try { quick = sessionStorage.getItem('splash.quick') === '1'; sessionStorage.removeItem('splash.quick'); } catch (e) {}
   claim.innerHTML = CLAIM.map(l => `<span>${[...l].map(c => `<i>${c === ' ' ? '&nbsp;' : c}</i>`).join('')}</span>`).join('');
   const glyphs = [...el.querySelectorAll('.gl')], chars = [...claim.querySelectorAll('i')];
-  const caret = document.createElement('b'); caret.className = 'caret';
-  if (quick || RM.matches){                                     // без анимации: сразу готовый знак со слоганом
+  if (quick || RM.matches || !el.animate){                       // без анимации: сразу готовый знак со слоганом
     paintBars(); sp.classList.add('s-bg', 's-frame'); glyphs.forEach(g => g.classList.add('on')); chars.forEach(c => c.classList.add('on'));
-    splashTimers.push(setTimeout(finishSplash, quick ? 350 : 900)); return;
+    setTimeout(finishSplash, quick ? 350 : 900); return;
   }
   sp.addEventListener('click', finishSplash);
-  const at = (ms, fn) => splashTimers.push(setTimeout(fn, ms));
+  /* Плавность: движение и проявление — Web Animations (их ведёт композитор, а не таймеры),
+     «печать» — один покадровый цикл по общим часам. Если кадр задержится, цикл просто догонит
+     нужное состояние, а не выстрелит пачкой отложенных таймеров. */
+  const caret = document.createElement('b'); caret.className = 'caret';
   const putCur = (line, x) => { const [y, h, w] = CUR[line]; cur.setAttribute('x', x); cur.setAttribute('y', y); cur.setAttribute('height', h); cur.setAttribute('width', w); };
-  // FLIP: в итоговой раскладке элемент стоит слева от слогана; на старте сдвигаем его в центр экрана
-  const r = el.getBoundingClientRect();
-  const dx = innerWidth / 2 - (r.left + r.width / 2), dy = innerHeight / 2 - (r.top + r.height / 2);
-  el.style.transform = `translate(${dx}px, ${dy}px) scale(1.35)`;
-  at(60,  () => { sp.classList.add('s-bg'); paintBars(); });
-  at(320, () => sp.classList.add('s-frame'));
-  at(820, () => { putCur('me', 50); cur.classList.add('on'); });
-  let t = 1000;
-  glyphs.forEach((g, i) => {
-    const line = g.dataset.l, step = line === 'me' ? 170 : line === 'num' ? 90 : 34;
+  const ev = [], at = (t, fn) => ev.push([t, fn]);
+  let t = 1150;
+  at(t - 200, () => { putCur('me', 50); cur.classList.add('on'); });
+  glyphs.forEach(g => { const line = g.dataset.l;
     at(t, () => { g.classList.add('on'); if (CUR[line]) putCur(line, +g.dataset.x + (line === 'me' ? 2.2 : 1)); });
-    t += step;
-  });
+    t += line === 'me' ? 170 : line === 'num' ? 90 : 34; });
   at(t + 80, () => cur.classList.remove('on'));
-  t += 160;
-  at(t, () => { el.classList.add('moving'); el.style.transform = ''; });
-  t += 620;
+  const tMove = t + 200, MOVE = 700; t = tMove + MOVE + 40;
   at(t, () => { chars[0].before(caret); caret.classList.add('on'); });
-  t += 120;
-  chars.forEach(c => { at(t, () => { c.classList.add('on'); c.after(caret); }); t += 24; });
-  at(t + 350, () => caret.classList.remove('on'));
-  at(t + 650, finishSplash);
+  t += 140;
+  chars.forEach(c => { at(t, () => { c.classList.add('on'); c.after(caret); }); t += 26; });
+  at(t + 380, () => caret.classList.remove('on'));
+  at(t + 700, finishSplash);
+  // стартуем со второго кадра, когда WebView уже отрисовал первый и разгрузился
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    sp.classList.add('waapi', 's-frame');
+    const r = el.getBoundingClientRect();
+    const dx = innerWidth / 2 - (r.left + r.width / 2), dy = innerHeight / 2 - (r.top + r.height / 2);
+    const C = `translate(${dx}px, ${dy}px)`;
+    const A = (node, kf, o) => { const a = node.animate(kf, {fill: 'both', ...o}); splashAnims.push(a); return a; };
+    A(sp.querySelector('.sp-bg'), [{opacity: 0}, {opacity: 1}], {duration: 650, delay: 0, easing: 'ease-out'});
+    A(el, [{transform: `${C} scale(.22)`, opacity: 0}, {transform: `${C} scale(1.35)`, opacity: 1, offset: .999}, {transform: `${C} scale(1.35)`, opacity: 1}], {duration: 750, delay: 280, easing: 'cubic-bezier(.2,.8,.2,1)'});
+    // переезд знака влево к слогану: продолжает с того же кадра, где закончилось появление
+    const move = () => A(el, [{transform: `${C} scale(1.35)`, opacity: 1}, {transform: 'translate(0,0) scale(1)', opacity: 1}], {duration: MOVE, easing: 'cubic-bezier(.65,0,.25,1)'});
+    at(tMove, move);
+    ev.sort((a, b) => a[0] - b[0]);
+    setTimeout(paintBars, 0);
+    const t0 = performance.now(); let k = 0;
+    const tick = now => {
+      const e = now - t0;
+      while (k < ev.length && ev[k][0] <= e){ ev[k][1](); k++; }
+      if (k < ev.length && splashUp) splashRaf = requestAnimationFrame(tick);
+    };
+    splashRaf = requestAnimationFrame(tick);
+    try { const d = new Date(); lsSet('splash.day', d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate()); } catch (e) {}
+  }));
 }
 runSplash();
 </script>
