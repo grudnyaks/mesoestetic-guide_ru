@@ -8,11 +8,17 @@
 """
 import datetime, json, re, sys
 
-today = datetime.date.today().strftime('%Y.%m.%d')
+# дата по Москве: сервер GitHub живёт по UTC, и ночью там ещё «вчера»
+today = (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=3)).strftime('%Y.%m.%d')
 meta = json.load(open('version.json', encoding='utf-8'))
 old = meta['version']
-n = int(old.rsplit('.', 1)[1]) + 1 if old.startswith(today + '.') else 1
-new = f'{today}.{n}'
+key = lambda v: tuple(int(x) for x in v.split('.'))
+base, n = old.rsplit('.', 1)
+# номер версии никогда не идёт назад: иначе телефоны сочтут обновление старым и пропустят его
+if key(today + '.0') > key(base + '.0'):
+    new = f'{today}.1'
+else:
+    new = f'{base}.{int(n) + 1}'
 
 html = open('index.html', encoding='utf-8').read()
 html2 = html.replace(f'<meta name="app-version" content="{old}">', f'<meta name="app-version" content="{new}">')
