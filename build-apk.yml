@@ -5,6 +5,9 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -71,18 +74,55 @@ jobs:
       - name: Перенести справочник в Android-проект
         run: npx cap sync android
 
-      - name: Собрать APK
-        working-directory: android
+      - name: Собрать и подписать APK
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
         run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          VER=$(python3 -c "import json;print(json.load(open('version.json'))['version'])")
+          echo "VER=$VER" >> "$GITHUB_ENV"
+          mkdir -p dist
+          cd android && chmod +x gradlew
+          if [ -n "$KS_B64" ]; then
+            # постоянный ключ: каждая новая версия ставится поверх старой, данные сохраняются
+            echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            ./gradlew assembleRelease --no-daemon --stacktrace
+            BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+            "$BT/zipalign" -p -f 4 app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/aligned.apk"
+            "$BT/apksigner" sign --ks "$RUNNER_TEMP/release.keystore" --ks-key-alias mesoestetic \
+              --ks-pass pass:mesoestetic-guide-ru --key-pass pass:mesoestetic-guide-ru \
+              --out "../dist/mesoestetic-guide-$VER.apk" "$RUNNER_TEMP/aligned.apk"
+            "$BT/apksigner" verify --print-certs "../dist/mesoestetic-guide-$VER.apk" | head -3
+            rm -f "$RUNNER_TEMP/release.keystore"
+          else
+            echo "::warning::Нет секрета ANDROID_KEYSTORE_B64 — APK подписан временным ключом и не встанет поверх прошлой версии."
+            ./gradlew assembleDebug --no-daemon --stacktrace
+            cp app/build/outputs/apk/debug/app-debug.apk "../dist/mesoestetic-guide-$VER.apk"
+          fi
+          cp "../dist/mesoestetic-guide-$VER.apk" ../dist/mesoestetic-guide.apk
 
-      - name: Подготовить APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk mesoestetic-guide.apk
-
-      - name: Выложить APK для скачивания
+      - name: Выложить APK в сборку
         uses: actions/upload-artifact@v4
         with:
-          name: mesoestetic-guide-apk
-          path: mesoestetic-guide.apk
+          name: mesoestetic-guide-${{ env.VER }}
+          path: dist/mesoestetic-guide-${{ env.VER }}.apk
           retention-days: 30
+
+      - name: Опубликовать в Releases
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v$VER"
+          NOTES=$(python3 -c "import json;d=json.load(open('version.json'));print(d.get('notes') or 'Обновление справочника')")
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "dist/mesoestetic-guide-$VER.apk" dist/mesoestetic-guide.apk --clobber
+          else
+            gh release create "$TAG" "dist/mesoestetic-guide-$VER.apk" dist/mesoestetic-guide.apk \
+              --title "mesoestetic $VER" --notes "$NOTES
+
+          Установка: скачайте mesoestetic-guide-$VER.apk и откройте на телефоне." --target "$GITHUB_SHA" --latest
+          fi
+          {
+            echo "### APK $VER"
+            echo "Постоянная ссылка на свежую версию: https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/mesoestetic-guide.apk"
+          } >> "$GITHUB_STEP_SUMMARY"
