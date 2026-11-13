@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="2026.11.14.1">
+<meta name="app-version" content="2026.11.14.2">
 <script>
 /* ── обновление по воздуху: если в памяти лежит более свежая версия справочника, запускаем её вместо встроенной */
 (function(){
-  var BUNDLED = '2026.11.14.1';
+  var BUNDLED = '2026.11.14.2';
   function cmp(a, b){ a = String(a).split('.'); b = String(b).split('.');
     for (var i = 0; i < Math.max(a.length, b.length); i++){ var d = (+a[i] || 0) - (+b[i] || 0); if (d) return d; } return 0; }
   window.__verCmp = cmp;
@@ -1763,6 +1763,22 @@ syncThemeUI();
 if ('serviceWorker' in navigator && location.protocol === 'https:' && location.hostname !== 'localhost' && !IS_APP){
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
+/* веб-версия (iPhone с экрана «Домой»): её часто не перезапускают, а разворачивают из фона —
+   поэтому при каждом возвращении проверяем, не вышла ли новая версия, и предлагаем обновиться */
+let webChecked = 0;
+async function webUpdateCheck(){
+  if (IS_APP || location.protocol !== 'https:' || Date.now() - webChecked < 5 * 60e3) return; webChecked = Date.now();
+  try {
+    const r = await fetch('version.json?t=' + Date.now(), {cache: 'no-store'}); if (!r.ok) return;
+    const v = (await r.json()).version; if (!v || window.__verCmp(v, window.__APP_VER) <= 0) return;
+    const t = toast(`<span>Вышла новая версия справочника ${esc(v)}</span><button type="button" class="go">Обновить</button><button type="button" class="x" aria-label="Закрыть">✕</button>`);
+    t.querySelector('.go').addEventListener('click', async () => {
+      try { const reg = await navigator.serviceWorker?.getRegistration(); await reg?.update(); } catch (e) {}
+      try { sessionStorage.setItem('splash.quick', '1'); } catch (e) {} location.reload(); });
+  } catch (e) {}
+}
+setTimeout(webUpdateCheck, 4000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') webUpdateCheck(); });
 
 /* ── заставка: проявляется белый фон → растёт рамка → печатается «Me» → элемент уходит влево → печатается слоган */
 const CLAIM = ['главный элемент', 'для экспертов', 'в уходе за кожей'];
