@@ -36,8 +36,10 @@ jobs:
           SHEET_PRODUCTS_CSV: ${{ vars.SHEET_PRODUCTS_CSV }}
           SHEET_LINES_CSV: ${{ vars.SHEET_LINES_CSV }}
           SHEET_GLOSSARY_CSV: ${{ vars.SHEET_GLOSSARY_CSV }}
+          SHEET_COMPLEXES_CSV: ${{ vars.SHEET_COMPLEXES_CSV }}
+          SHEET_ABOUT_CSV: ${{ vars.SHEET_ABOUT_CSV }}
         run: |
-          if [ -z "$SHEET_PRODUCTS_CSV$SHEET_LINES_CSV$SHEET_GLOSSARY_CSV" ]; then
+          if [ -z "$SHEET_PRODUCTS_CSV$SHEET_LINES_CSV$SHEET_GLOSSARY_CSV$SHEET_COMPLEXES_CSV$SHEET_ABOUT_CSV" ]; then
             echo "::warning::Ссылки на Google-таблицу не заданы (Settings → Secrets and variables → Actions → Variables). Выпускаю без синхронизации."
           else
             python3 tools/sheet_sync.py index.html

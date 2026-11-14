@@ -2,7 +2,7 @@
 """Применить данные из Google-таблицы к справочнику (index.html).
 
 Источники — опубликованные в интернете CSV листов (Файл → Поделиться → Опубликовать в интернете → лист → CSV):
-    SHEET_PRODUCTS_CSV, SHEET_LINES_CSV, SHEET_GLOSSARY_CSV — URL или путь к файлу.
+    SHEET_PRODUCTS_CSV, SHEET_LINES_CSV, SHEET_GLOSSARY_CSV, SHEET_COMPLEXES_CSV, SHEET_ABOUT_CSV — URL или путь к файлу.
 Пустая переменная — этот лист не трогаем.
 
     python3 tools/sheet_sync.py [index.html]
@@ -11,7 +11,7 @@
 import csv, io, json, os, sys, urllib.request
 import os as _os, sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
-from sheet_common import SHEETS, from_cell, inci_key, load_index, save_index
+from sheet_common import SHEETS, from_cell, inci_key, load_index, save_index, about_from_rows
 
 path = sys.argv[1] if len(sys.argv) > 1 else 'index.html'
 lines, idx, D = load_index(path)
@@ -47,6 +47,8 @@ def read_sheet(key, env):
 lines_rows = read_sheet('lines', 'SHEET_LINES_CSV')
 gl_rows = read_sheet('glossary', 'SHEET_GLOSSARY_CSV')
 pr_rows = read_sheet('products', 'SHEET_PRODUCTS_CSV')
+cx_rows = read_sheet('complexes', 'SHEET_COMPLEXES_CSV')
+ab_rows = read_sheet('about', 'SHEET_ABOUT_CSV')
 if errors: print('\n'.join('::error::' + e for e in errors)); sys.exit(1)
 
 # ── линии
@@ -112,6 +114,33 @@ if pr_rows is not None:
     if gone: warns.append('Удалены: ' + ', '.join(gone))
     D['products'] = new
 
+# ── фирменные комплексы
+if cx_rows is not None:
+    PC = {p['code'] for p in D['products']}; new = []
+    for it in cx_rows:
+        if it.get('_delete'): continue
+        if not it.get('id') or not it.get('name'): errors.append(f'Комплексы, строка {it["_row"]}: нужны id и Название'); continue
+        if it.get('line') and it['line'] not in LINES: errors.append(f'Комплексы, строка {it["_row"]} ({it["id"]}): нет линии «{it["line"]}»'); continue
+        c = {k: v for k, v in it.items() if not k.startswith('_')}
+        for k, d in [('parts', []), ('g', []), ('used', []), ('purpose', ''), ('text', ''), ('line', ''), ('patent', False)]: c.setdefault(k, d)
+        bad = [x for x in c['g'] if x not in GL]
+        if bad: warns.append(f'Комплекс {c["id"]}: нет в глоссарии {", ".join(bad)} — пропущены'); c['g'] = [x for x in c['g'] if x in GL]
+        bad = [x for x in c['used'] if x not in PC]
+        if bad: warns.append(f'Комплекс {c["id"]}: нет препаратов {", ".join(bad)} — пропущены'); c['used'] = [x for x in c['used'] if x in PC]
+        new.append(c)
+    if len(set(c['id'] for c in new)) != len(new): errors.append('Комплексы: повторяется id')
+    D['complexes'] = new
+    for g in D['glossary']:          # обратные ссылки «входит в комплекс»
+        cx = [c['id'] for c in new if g['id'] in c['g']]
+        if cx: g['cx'] = cx
+        else: g.pop('cx', None)
+
+# ── «О компании»
+if ab_rows is not None:
+    A = about_from_rows(ab_rows, errors)
+    if not A.get('title'): errors.append('«О компании»: нет строки «Заголовок»')
+    D['about'] = A
+
 if errors: print('\n'.join('::error::' + e for e in errors)); sys.exit(1)
 
 # ── привязка INCI к глоссарию и «где встречается»
@@ -138,6 +167,6 @@ for c in D.get('complexes', []): c['used'] = [x for x in c['used'] if any(p['cod
 for w in warns: print('::warning::' + w)
 changed = json.dumps(D, ensure_ascii=False, sort_keys=True) != before
 if changed: save_index(path, lines, idx, D)
-print('changed' if changed else 'no changes', '| products', len(D['products']), '| lines', len(D['lines']), '| glossary', len(D['glossary']))
+print('changed' if changed else 'no changes', '| products', len(D['products']), '| lines', len(D['lines']), '| glossary', len(D['glossary']), '| complexes', len(D.get('complexes', [])))
 if os.environ.get('GITHUB_OUTPUT'):
     open(os.environ['GITHUB_OUTPUT'], 'a').write(f'changed={"true" if changed else "false"}\n')

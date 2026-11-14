@@ -23,7 +23,42 @@ GLOSS_COLS = [
     ('id', 'id', 's'), ('ru', 'Название RU', 's'), ('cat', 'Категория', 's'), ('tech', 'Вспомогательный (да/нет)', 'bool'),
     ('text', 'Кратко', 's'), ('more', 'Подробнее', 's'), ('inci', 'INCI-названия (через ;)', 'list'),
 ]
-SHEETS = {'products': ('Препараты', PRODUCT_COLS), 'lines': ('Линии', LINE_COLS), 'glossary': ('Глоссарий', GLOSS_COLS)}
+COMPLEX_COLS = [
+    ('id', 'id', 's'), ('name', 'Название', 's'), ('line', 'Линия (id)', 's'), ('patent', 'Патент (да/нет)', 'bool'),
+    ('purpose', 'Назначение', 's'), ('parts', 'Состав (каждый пункт с новой строки)', 'lines'), ('text', 'Как работает', 's'),
+    ('g', 'Ключевые ингредиенты (id глоссария через ;)', 'list'), ('used', 'Препараты (артикулы через ;)', 'list'),
+    ('_delete', 'Удалить (да)', 'bool'),
+]
+ABOUT_COLS = [('block', 'Блок', 's'), ('head', 'Заголовок / число / год', 's'), ('text', 'Текст', 's')]
+SHEETS = {'products': ('Препараты', PRODUCT_COLS), 'lines': ('Линии', LINE_COLS), 'glossary': ('Глоссарий', GLOSS_COLS),
+          'complexes': ('Комплексы', COMPLEX_COLS), 'about': ('О компании', ABOUT_COLS)}
+
+# «О компании»: блоки страницы ⇄ строки листа (порядок строк = порядок на странице)
+ABOUT_ONE = [('title', 'Заголовок'), ('lead', 'Вступление'), ('quote', 'Цитата'), ('brand', 'Знак бренда'), ('production', 'Производство'), ('sustain', 'Устойчивое развитие')]
+ABOUT_MANY = [('facts', 'Факт'), ('principles', 'Принцип'), ('history', 'История')]
+
+def about_rows(A):
+    rows = []
+    for k, ru in ABOUT_ONE[:3]: rows.append({'block': ru, 'head': '', 'text': A.get(k, '')})
+    for b, t in A.get('facts', []): rows.append({'block': 'Факт', 'head': b, 'text': t})
+    rows.append({'block': 'Знак бренда', 'head': '', 'text': A.get('brand', '')})
+    for b, t in A.get('principles', []): rows.append({'block': 'Принцип', 'head': b, 'text': t})
+    for k, ru in ABOUT_ONE[4:]: rows.append({'block': ru, 'head': '', 'text': A.get(k, '')})
+    for y, t in A.get('history', []): rows.append({'block': 'История', 'head': y, 'text': t})
+    if A.get('contact'): rows.append({'block': 'Контакты', 'head': A['contact'][0], 'text': A['contact'][1]})
+    return rows
+
+def about_from_rows(rows, errors):
+    one = {ru.lower(): k for k, ru in ABOUT_ONE}; many = {ru.lower(): k for k, ru in ABOUT_MANY}
+    A = {k: [] for k, _ in ABOUT_MANY}
+    for r in rows:
+        b = (r.get('block') or '').strip().lower()
+        if not b: continue
+        if b in one: A[one[b]] = r.get('text', '')
+        elif b in many: A[many[b]].append([r.get('head', ''), r.get('text', '')])
+        elif b == 'контакты': A['contact'] = [r.get('head', ''), r.get('text', '')]
+        else: errors.append(f'«О компании», строка {r["_row"]}: неизвестный блок «{r.get("block")}» — допустимы: ' + ', '.join([ru for _, ru in ABOUT_ONE + ABOUT_MANY] + ['Контакты']))
+    return A
 
 YES = {'да', 'yes', 'y', 'true', '1', '+', 'x', 'х'}
 

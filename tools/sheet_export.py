@@ -9,7 +9,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 import os as _os, sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
-from sheet_common import SHEETS, load_index, to_cell
+from sheet_common import SHEETS, load_index, to_cell, about_rows
 
 src = sys.argv[1] if len(sys.argv) > 1 else 'index.html'
 dst = sys.argv[2] if len(sys.argv) > 2 else 'mesoestetic-guide-data.xlsx'
@@ -23,7 +23,7 @@ info = wb.active; info.title = 'Как пользоваться'
 rows = [
     ('Справочник mesoestetic — данные для редактирования', True),
     ('', False),
-    ('Листы «Препараты», «Линии» и «Глоссарий» — источник данных приложения. После правок нажмите в GitHub: Actions → «Выпуск» → Run workflow. Данные из таблицы попадут в справочник, приложения получат обновление по воздуху, соберётся новый APK.', False),
+    ('Листы «Препараты», «Линии», «Глоссарий», «Комплексы» и «О компании» — источник данных приложения. После правок нажмите в GitHub: Actions → «Выпуск» → Run workflow. Данные из таблицы попадут в справочник, приложения получат обновление по воздуху, соберётся новый APK.', False),
     ('', False),
     ('Как править', True),
     ('• Меняйте текст прямо в ячейках. Названия колонок и порядок листов не меняйте.', False),
@@ -33,6 +33,8 @@ rows = [
     ('• INCI: компоненты через запятую с пробелом. Если у набора несколько составов, разделите их «||» и подпишите: «COSMELAN 1: Aqua, ... || COSMELAN 2: Aqua, ...».', False),
     ('• Новые ингредиенты из INCI сами привяжутся к статьям глоссария, если в глоссарии есть такое INCI-название. Иначе добавьте строку в «Глоссарий».', False),
     ('• Да/нет: «да» — включено, пусто — выключено.', False),
+    ('• «Комплексы»: состав — каждый пункт с новой строки; ключевые ингредиенты — id из «Глоссария» через «;»; препараты — артикулы через «;». Удалить — «да» в колонке «Удалить».', False),
+    ('• «О компании»: каждая строка — блок страницы, порядок строк = порядок на странице. Блоки: Заголовок, Вступление, Цитата, Факт (число + подпись), Знак бренда, Принцип (заголовок + текст), Производство, Устойчивое развитие, История (год + событие), Контакты (название + адрес и телефоны).', False),
     ('', False),
     ('Защита от ошибок', True),
     ('Синхронизация не применит таблицу, если пропала колонка, повторился артикул, указана несуществующая линия или препаратов стало меньше половины от прежнего. Причина будет видна в GitHub → Actions.', False),
@@ -47,13 +49,13 @@ for k, (title, cols) in SHEETS.items():
     ws = wb.create_sheet(title)
     for j, (_, h, _) in enumerate(cols, 1):
         c = ws.cell(1, j, h); c.font = head; c.fill = fill; c.alignment = Alignment(wrap_text=True, vertical='center')
-    items = D['glossary'] if k == 'glossary' else D[k]
+    items = about_rows(D.get('about', {})) if k == 'about' else D.get(k, [])
     for r, it in enumerate(items, 2):
         for j, (f, _, t) in enumerate(cols, 1):
             c = ws.cell(r, j, to_cell(it.get(f), t)); c.font = body; c.alignment = Alignment(wrap_text=True, vertical='top')
     for j, (f, h, t) in enumerate(cols, 1):
         L = ws.cell(1, j).column_letter
-        ws.column_dimensions[L].width = {'s': 28, 'lines': 34, 'list': 26, 'bool': 12, 'inci': 60}[t] if f not in ('desc', 'usage', 'more', 'intro', 'text', 'ideal') else 48
+        ws.column_dimensions[L].width = {'s': 28, 'lines': 34, 'list': 26, 'bool': 12, 'inci': 60}[t] if f not in ('desc', 'usage', 'more', 'intro', 'text', 'ideal', 'purpose') else 48
         if f in ('code', 'line', 'id', 'en', 'ru', 'kind'):
             ws.cell(1, j).fill = PatternFill('solid', fgColor='7F6000')
     ws.freeze_panes = 'B2'; ws.row_dimensions[1].height = 42
@@ -62,4 +64,4 @@ for k, (title, cols) in SHEETS.items():
         ids = ','.join(l['id'] for l in D['lines'])
         dl = DataValidation(type='list', formula1=f'"{ids}"', allow_blank=False); ws.add_data_validation(dl); dl.add('B2:B1000')
 wb.save(dst)
-print('saved', dst, {k: len(D['glossary'] if k == 'glossary' else D[k]) for k in SHEETS})
+print('saved', dst, {k: len(about_rows(D.get('about', {})) if k == 'about' else D.get(k, [])) for k in SHEETS})
