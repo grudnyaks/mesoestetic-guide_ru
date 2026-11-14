@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="2026.11.14.3">
+<meta name="app-version" content="2026.11.14.4">
 <script>
 /* ── обновление по воздуху: если в памяти лежит более свежая версия справочника, запускаем её вместо встроенной */
 (function(){
-  var BUNDLED = '2026.11.14.3';
+  var BUNDLED = '2026.11.14.4';
   function cmp(a, b){ a = String(a).split('.'); b = String(b).split('.');
     for (var i = 0; i < Math.max(a.length, b.length); i++){ var d = (+a[i] || 0) - (+b[i] || 0); if (d) return d; } return 0; }
   window.__verCmp = cmp;
@@ -81,7 +81,7 @@ button{font:inherit;color:inherit}
 #splash .sp-claim span{display:block}
 #splash .sp-claim i{font-style:normal;opacity:0}
 #splash .sp-claim i.on{opacity:1}
-#splash .sp-claim .caret{display:inline-block;width:.09em;height:.95em;margin-left:.04em;background:currentColor;vertical-align:-.12em;opacity:0}
+#splash .sp-claim .caret{display:inline-block;width:.09em;height:.95em;margin:0 -.13em 0 .04em;background:currentColor;vertical-align:-.12em;opacity:0}
 #splash .sp-claim .caret.on{opacity:1;animation:blink .9s steps(1) infinite}
 #splash.done{opacity:0;visibility:hidden;pointer-events:none}
 #splash.waapi .sp-frame,#splash.waapi .sp-bg{transition:none}
@@ -1825,8 +1825,10 @@ function runSplash(){
   // стартуем со второго кадра, когда WebView уже отрисовал первый и разгрузился
   requestAnimationFrame(() => requestAnimationFrame(() => {
     sp.classList.add('waapi', 's-frame');
-    const r = el.getBoundingClientRect();
-    const dx = innerWidth / 2 - (r.left + r.width / 2), dy = innerHeight / 2 - (r.top + r.height / 2);
+    // смещение к центру считаем от самого блока «знак + слоган», а не от размеров экрана:
+    // блок всегда по центру, так что если Android на старте чуть изменит окно (полоса статуса), знак не съедет
+    const r = el.getBoundingClientRect(), L = $('#spLock').getBoundingClientRect();
+    const dx = (L.left + L.width / 2) - (r.left + r.width / 2), dy = (L.top + L.height / 2) - (r.top + r.height / 2);
     const C = `translate(${dx}px, ${dy}px)`;
     const A = (node, kf, o) => { const a = node.animate(kf, {fill: 'both', ...o}); splashAnims.push(a); return a; };
     A(sp.querySelector('.sp-bg'), [{opacity: 0}, {opacity: 1}], {duration: 650, delay: 0, easing: 'ease-out'});
