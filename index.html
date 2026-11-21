@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="2026.11.21.5">
+<meta name="app-version" content="2026.11.21.6">
 <script>
 /* ── обновление по воздуху: если в памяти лежит более свежая версия справочника, запускаем её вместо встроенной */
 (function(){
-  var BUNDLED = '2026.11.21.5';
+  var BUNDLED = '2026.11.21.6';
   function cmp(a, b){ a = String(a).split('.'); b = String(b).split('.');
     for (var i = 0; i < Math.max(a.length, b.length); i++){ var d = (+a[i] || 0) - (+b[i] || 0); if (d) return d; } return 0; }
   window.__verCmp = cmp;
@@ -748,7 +748,7 @@ function applyTiles(){ const v = tilePref(); document.documentElement.dataset.ts
 document.addEventListener('click', e => { const b = e.target.closest('[data-ts-set]'); if (!b) return; lsSet('tiles', b.dataset.tsSet === 'auto' ? null : b.dataset.tsSet); applyTiles(); });
 /* фото препаратов: лежат отдельно от приложения (папка photos на сайте), подгружаются по сети и кэшируются;
    на странице — внутри большой «металлической» плашки линии (вариант B) */
-const PHOTO_BASE = location.protocol === 'https:' && !IS_APP ? 'photos/' : 'https://grudnyaks.github.io/mesoestetic-guide_ru/photos/';
+const PHOTO_BASE = location.protocol === 'https:' && !(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) ? 'photos/' : 'https://grudnyaks.github.io/mesoestetic-guide_ru/photos/';
 const hasPhoto = code => (DATA.photos || []).includes(code);
 const photoUrl = (code, small) => PHOTO_BASE + (small ? 'sm/' : '') + code + '.webp';
 function photoFrame(p, l){
