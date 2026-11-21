@@ -139,6 +139,6 @@ jobs:
             echo "удаляю релиз $tag"; gh api -X DELETE "repos/$R/releases/$id" || true; gh api -X DELETE "repos/$R/git/refs/tags/$tag" || true
           done
           # файлы сборок старше часа (свежие — текущей сборки APK и iOS — остаются)
-          gh api "repos/$R/actions/artifacts?per_page=100" --jq '.artifacts[] | select((.name | startswith("mesoestetic-guide") or startswith("ios-")) and ((.created_at | fromdateiso8601) < (now - 3600))) | .id' | while read id; do
+          gh api "repos/$R/actions/artifacts?per_page=100" --jq '.artifacts[] | select((.name | startswith("mesoestetic-")) and ((.created_at | fromdateiso8601) < (now - 3600))) | .id' | while read id; do
             gh api -X DELETE "repos/$R/actions/artifacts/$id" || true
           done
