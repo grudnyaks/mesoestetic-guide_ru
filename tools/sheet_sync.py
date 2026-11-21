@@ -11,7 +11,7 @@
 import csv, io, json, os, sys, urllib.request
 import os as _os, sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
-from sheet_common import SHEETS, from_cell, inci_key, load_index, save_index, about_from_rows
+from sheet_common import SHEETS, OPTIONAL_COLS, from_cell, inci_key, load_index, save_index, about_from_rows
 
 path = sys.argv[1] if len(sys.argv) > 1 else 'index.html'
 lines, idx, D = load_index(path)
@@ -34,7 +34,7 @@ def read_sheet(key, env):
     pos = {}
     for f, h, t in cols:
         if h not in hdr:
-            if f == '_delete': continue
+            if f in OPTIONAL_COLS: continue
             errors.append(f'«{title}»: нет колонки «{h}»'); continue
         pos[f] = hdr.index(h)
     out = []
