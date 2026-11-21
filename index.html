@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="2026.11.21.1">
+<meta name="app-version" content="2026.11.21.2">
 <script>
 /* ── обновление по воздуху: если в памяти лежит более свежая версия справочника, запускаем её вместо встроенной */
 (function(){
-  var BUNDLED = '2026.11.21.1';
+  var BUNDLED = '2026.11.21.2';
   function cmp(a, b){ a = String(a).split('.'); b = String(b).split('.');
     for (var i = 0; i < Math.max(a.length, b.length); i++){ var d = (+a[i] || 0) - (+b[i] || 0); if (d) return d; } return 0; }
   window.__verCmp = cmp;
@@ -143,6 +143,48 @@ p{margin:0 0 12px;max-width:66ch}
 :root[data-theme="dark"] .tile.mono{--c:#ffffff !important}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tile.acc{border-color:var(--c)}:root:not([data-theme="light"]) .tile.mono{--c:#ffffff !important}}
 .table .tile.press{transform:scale(.95)}
+/* ── объёмные плашки: общее — «висят» над экраном и переливаются каждая в своё время */
+:root[data-ts] .table{position:relative;isolation:isolate;gap:12px}
+:root[data-ts] .table .tile{translate:0 -3px;animation:bob 6.5s ease-in-out infinite;animation-delay:var(--d2)}
+:root[data-ts] .table.intro .tile{animation:tileIn .5s var(--ease) both,bob 6.5s ease-in-out infinite;animation-delay:calc(var(--i) * 28ms),var(--d2)}
+@keyframes bob{0%,100%{translate:0 -3px}50%{translate:0 -7px}}
+:root[data-ts] .tile::after{content:"";position:absolute;inset:-60%;z-index:1;pointer-events:none;background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.6) 50%,transparent 58%);transform:translateX(-110%);animation:sheen 9s ease-in-out infinite;animation-delay:var(--d)}
+@keyframes sheen{0%,72%{transform:translateX(-110%)}100%{transform:translateX(110%)}}
+:root[data-ts] .tile>*{position:relative;z-index:2}
+:root[data-ts] .tile .n{position:absolute}
+/* металл: рамка как анодированный металл в цвете линии */
+:root[data-ts="metal"] .tile{--tbg:var(--paper);border:6px solid transparent;background:linear-gradient(var(--tbg),var(--tbg)) padding-box,linear-gradient(135deg,color-mix(in srgb,var(--c) 35%,#fff),var(--c) 35%,color-mix(in srgb,var(--c) 62%,#000) 55%,color-mix(in srgb,var(--c) 30%,#fff) 76%,var(--c)) border-box;box-shadow:0 12px 16px -11px rgba(0,0,0,.42)}
+:root[data-ts="metal"] .tile.acc{--tbg:#000}
+:root[data-ts="metal"] .tile::after{background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.85) 50%,transparent 60%)}
+/* стекло: матовое стекло на цветных пятнах, рамка светится цветом линии */
+:root[data-ts="glass"] .tile{background:color-mix(in srgb,var(--paper) 45%,transparent);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border:3px solid color-mix(in srgb,var(--c) 85%,#fff);border-radius:6px;box-shadow:0 12px 22px -10px color-mix(in srgb,var(--c) 55%,transparent),inset 0 1px 1px rgba(255,255,255,.8)}
+:root[data-ts="glass"] .tile.acc{background:rgba(0,0,0,.88)}
+/* жидкое стекло: скруглённые капли с бликами по краю */
+:root[data-ts="liquid"] .tile{border-radius:18px;border:1px solid color-mix(in srgb,var(--ink) 30%,transparent);background:color-mix(in srgb,var(--ink) 9%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -12px 22px rgba(255,255,255,.05),0 0 0 2px color-mix(in srgb,var(--c) 70%,transparent),0 14px 22px -12px rgba(0,0,0,.6)}
+:root[data-ts="liquid"] .tile .s{color:color-mix(in srgb,var(--c) 72%,var(--ink))}
+:root[data-ts="liquid"] .tile.mono .s{color:var(--ink)}
+:root[data-ts="liquid"] .tile.acc{background:rgba(0,0,0,.55)}
+:root[data-ts="liquid"] .tile::after{background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.3) 50%,transparent 58%)}
+/* под стеклянными плашками на главной — мягкие цветные пятна, иначе стеклу нечего «размывать» */
+:root[data-ts="glass"] .table::before,:root[data-ts="liquid"] .table::before{content:"";position:absolute;inset:-24px -10px;z-index:-1;filter:blur(36px);opacity:.55;pointer-events:none;
+  background:radial-gradient(32% 26% at 12% 18%,#F57CAC,transparent 70%),radial-gradient(30% 24% at 85% 28%,#24AEEA,transparent 70%),radial-gradient(34% 26% at 40% 62%,#F2B705,transparent 70%),radial-gradient(30% 24% at 90% 82%,#AE8BCD,transparent 70%),radial-gradient(28% 22% at 15% 90%,#79BFAB,transparent 70%)}
+:root[data-ts="liquid"] .table::before{opacity:.5}
+@media (prefers-reduced-motion:reduce){:root[data-ts] .table .tile,:root[data-ts] .tile::after{animation:none}}
+/* ── фон «стекло» страниц линий и препаратов */
+.glassy{position:relative}
+.aura{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.aura i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5}
+.aura i:nth-child(1){background:var(--a1);width:70vw;height:70vw;max-width:520px;max-height:520px;left:-18vw;top:6vh}
+.aura i:nth-child(2){background:var(--a3);width:64vw;height:64vw;max-width:480px;max-height:480px;right:-16vw;top:38vh}
+.aura i:nth-child(3){background:var(--a2);width:72vw;height:60vw;max-width:540px;max-height:440px;left:4vw;bottom:-8vh}
+.aura.soft i{opacity:.3}
+:root[data-theme="dark"] .aura i{opacity:.28}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .aura i{opacity:.28}}
+.gpanel{background:color-mix(in srgb,var(--paper) 58%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.3);backdrop-filter:blur(18px) saturate(1.3);border:1px solid color-mix(in srgb,var(--paper) 70%,transparent);border-radius:18px;padding:4px 16px 16px;margin:14px -8px 0}
+.gpanel .hero{padding-top:14px}
+#segbody.gpanel{padding-top:6px}
+.seg3.seg4{grid-template-columns:repeat(2,minmax(0,1fr))}
+
 .table .tile.go{transform:scale(1.04);z-index:2}
 .table.leaving .tile:not(.go){opacity:.35;transform:scale(.97);transition:opacity .25s ease,transform .3s var(--ease)}
 /* появление таблицы: плитки «проявляются» по очереди */
@@ -554,6 +596,7 @@ input,select,textarea{font-size:16px}
 .dg-opt .l{width:26px;height:26px;border:1px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
 .dg-opt.on{border-color:var(--ink);background:var(--ink);color:var(--paper)}
 .dg-opt.on .l{border-color:var(--paper)}
+.hpart h4{margin:16px 0 4px;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
 .dg-nav{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:22px}
 .btn{border:1px solid var(--ink);background:none;padding:14px;cursor:pointer;font-size:15px;font-weight:500}
 .btn.pri{background:var(--ink);color:var(--paper)}
@@ -649,10 +692,21 @@ const norm = s => String(s ?? '').toLowerCase().replace(/ё/g,'е').replace(/[ac
 /* ── views */
 function tile(l, big, i){
   const n = byLine(l.id).length;
-  return `<a class="tile${l.accent ? ' acc':''}${l.id==='age-element' ? ' mono':''}" href="#/line/${l.id}" data-line="${l.id}" style="${cvar(l)};--i:${i||0}" aria-label="${esc(l.name)}, ${esc(l.ru)}, препаратов: ${n}">
+  const k = i || DATA.lines.indexOf(l);
+  return `<a class="tile${l.accent ? ' acc':''}${l.id==='age-element' ? ' mono':''}" href="#/line/${l.id}" data-line="${l.id}" style="${cvar(l)};--i:${i||0};--d:${(-(k * 1.37) % 9).toFixed(2)}s;--d2:${(-(k * .91) % 6).toFixed(2)}s" aria-label="${esc(l.name)}, ${esc(l.ru)}, препаратов: ${n}">
     <span class="n">${n}</span><span class="s">${l.sym}</span>
     ${big ? '' : `<span class="nm"><b>${esc(l.name)}</b>${esc(l.short || l.ru)}</span>`}</a>`;
 }
+/* мягкие пятна в тонах линии под страницей (фон «стекло») */
+function aura(l, soft){
+  const c = /^#231f20$/i.test(l.color) ? '#8a8a8a' : l.color;
+  return `<div class="aura${soft ? ' soft' : ''}" aria-hidden="true" style="--a1:${c};--a2:color-mix(in srgb,${c} 45%,#ffffff);--a3:color-mix(in srgb,${c} 55%,#c9a7ff)"><i></i><i></i><i></i></div>`;
+}
+/* стиль плашек: металл / стекло / жидкое стекло; «авто» — металл в светлой теме, жидкое стекло в тёмной */
+const tilePref = () => { const v = lsGet('tiles'); return ['metal', 'glass', 'liquid'].includes(v) ? v : 'auto'; };
+function applyTiles(){ const v = tilePref(); document.documentElement.dataset.ts = v === 'auto' ? (isDark() ? 'liquid' : 'metal') : v;
+  document.querySelectorAll('[data-ts-set]').forEach(b => { const on = b.dataset.tsSet === v; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); }); }
+document.addEventListener('click', e => { const b = e.target.closest('[data-ts-set]'); if (!b) return; lsSet('tiles', b.dataset.tsSet === 'auto' ? null : b.dataset.tsSet); applyTiles(); });
 let homeIntro = true;
 function vHome(){
   const letters = {};
@@ -703,13 +757,13 @@ function vLine(id){
       <h3>Для кого</h3><ul class="who">${l.who.map(w => `<li>${esc(w)}</li>`).join('')}</ul>
       ${id === 'age-element' ? `<a class="tool" href="#/diag"><span class="ic">Ae</span><span><b>Подбор формулы бустеров</b><span>Диагностика клиента за 3 минуты: протокол на 5 сессий и домашний уход</span></span></a>` : ''}
       ${id === 'cosmelan' ? '<button class="jump" type="button" data-jump="journey">Путь пациента: 240 дней сопровождения</button>' : ''}`;
-  return `<div class="wrap" style="${cvar(l)}">
-    ${l.accent ? `<div class="dark">${heroInner}</div>` : heroInner}
+  return `<div class="wrap glassy" style="${cvar(l)}">${aura(l)}
+    ${l.accent ? `<div class="dark">${heroInner}</div>` : `<div class="gpanel">${heroInner}</div>`}
     <div class="seg" role="tablist">
       <button role="tab" data-seg="prof" class="${s==='prof'?'on':''}" ${prof.length?'':'disabled'}>Профессиональные · ${prof.length}</button>
       <button role="tab" data-seg="home" class="${s==='home'?'on':''}" ${home.length?'':'disabled'}>Домашний уход · ${home.length}</button>
     </div>
-    <div id="segbody">${groupBlock(s === 'home' ? home : prof)}</div>
+    <div id="segbody" class="gpanel">${groupBlock(s === 'home' ? home : prof)}</div>
     ${alsoFor(id)}
     ${id === 'cosmelan' ? journey() : ''}
   </div>`;
@@ -738,7 +792,7 @@ function vProduct(code){
   const inci = p.inci.length ? p.inci.map(s => `${s.title ? `<span class="st">${esc(s.title)}</span>` : ''}${
       s.items.map(i => i.g && GL[i.g] ? `<a class="ing${GL[i.g].tech ? ' t' : ''}" href="#/g/${i.g}">${esc(i.t)}</a>` : esc(i.t)).join(', ')}`).join('')
     : 'Набор: состав каждого компонента указан на его упаковке.';
-  return `<div class="wrap" style="${cvar(l)}">
+  return `<div class="wrap glassy" style="${cvar(l)}">${aura(l, true)}
     ${l.accent ? `<div class="dark">${head}</div>` : head}
     ${['T-PAGE0009','T-PAGE0010','T-PAGE0011','T-PAGE0012','T-PAGE0013','T-PAGE0016','T-PAGE0017','T-PAGE0018','T-PAGE0019'].includes(p.code) ? `<a class="tool" href="#/diag"><span class="ic">Ae</span><span><b>Подбор формулы бустеров</b><span>Диагностика клиента за 3 минуты: протокол на 5 сессий и домашний уход</span></span></a>` : ''}
     <section class="sect"><h3>Кратко</h3><p>${typo(p.desc)}</p></section>
@@ -851,9 +905,13 @@ function vAbout(){
     </div>
     ${A.sustain ? `<h2>Устойчивое развитие</h2><p>${esc(A.sustain)}</p>` : ''}
     ${(A.history || []).length ? `<h2>История</h2><ul class="tl">${A.history.map(([y, t]) => `<li><b>${esc(y)}</b><span>${esc(t)}</span></li>`).join('')}</ul>` : ''}
+    <h2>Для партнёра</h2>
+    <p class="rnote">Выжимка о бренде в PDF — отправить потенциальному партнёру. Ваши контакты из настроек попадут на последнюю страницу.</p>
+    <div class="rowbtns"><button class="btn pri" type="button" data-partner="brief">Визитка бренда · 3 стр.</button><button class="btn" type="button" data-partner="why">Почему mesoestetic · 5 стр.</button></div>
     <h2>Настройки</h2>
     <div class="settings">
       <div class="row"><span>Оформление</span><div class="seg3" role="radiogroup" aria-label="Оформление">${[['system','Системная'],['light','Светлая'],['dark','Тёмная']].map(([k,t]) => `<button type="button" role="radio" data-theme-set="${k}" class="${themePref()===k?'on':''}" aria-checked="${themePref()===k}">${t}</button>`).join('')}</div></div>
+      <div class="row col"><span>Плашки линий<small>«Авто»: металл в светлой теме, жидкое стекло в тёмной</small></span><div class="seg3 seg4" role="radiogroup" aria-label="Стиль плашек">${[['auto','Авто'],['metal','Металл'],['glass','Стекло'],['liquid','Жидкое стекло']].map(([k,t]) => `<button type="button" role="radio" data-ts-set="${k}" class="${tilePref() === k ? 'on' : ''}" aria-checked="${tilePref() === k}">${t}</button>`).join('')}</div></div>
       <div class="row col"><span>Ваши контакты в картинках и PDF<small>Печатаются внизу каждой карточки, которую вы отправляете клиенту</small></span>
         <div class="cform">${CONTACT_F.map(([k, t, ph, ac]) => `<label><span>${t}</span><input data-ck="${k}" value="${esc(contactGet()[k] || '')}" placeholder="${ph}" autocomplete="${ac}"></label>`).join('')}</div></div>
       <div class="row col"><span>Резервная копия<small>Свои протоколы, избранное, награды академии и контакты — в один файл. Сохраните его перед переустановкой или сменой телефона.</small></span>
@@ -914,6 +972,48 @@ const BCOL = {brightening:'#A6895B', firming:'#7C8384', antiwrinkle:'#9C6E6C', r
 const BCODE = {brightening:'T-PAGE0010', firming:'T-PAGE0012', antiwrinkle:'T-PAGE0011', redensifying:'T-PAGE0013'};
 const MASK = {'crystal fiber':'T-PAGE0014', 'firming mask':'T-PAGE0015'};
 // домашний уход — актуальный ассортимент age element (замена старых линий из исходного теста)
+/* домашний уход age element к результату диагностики: утро — главный приоритет, вечер — второй (подсерии смешиваются) */
+function homeScheme(order){
+  const [p1, p2] = order, has = k => p1 === k || p2 === k;
+  const day = k => k === 'redensifying' ? 'T-DAFS0003' : HOME[k].cream;            // днём у redensifying — лифтинг-крем
+  const night = has('antiwrinkle') || has('redensifying') ? 'T-DAWS0007' : HOME[p2].cream;
+  const clean = has('brightening') ? 'T-DHIG0005' : 'T-DHIG0004';
+  const spf = has('brightening') ? 'T-DSUN0034' : 'T-DSUN0030';
+  const eyeAM = HOME[p1].eye, eyePM = HOME[p2].eye;
+  const morning = [
+    {c: clean, how: 'Умыться: небольшое количество на влажную кожу, смыть водой.'},
+    {c: 'T-DHIG0009', how: 'Освежить кожу тоником-мистом.'},
+    {c: HOME[p1].serum, how: '2–3 капли на лицо, шею и декольте до впитывания.'},
+    {c: eyeAM, how: 'На кожу вокруг глаз лёгкими похлопываниями.'},
+    {c: day(p1), how: 'Крем на лицо, шею и декольте.'},
+    {c: spf, how: 'Последним шагом, каждый день — даже в пасмурную погоду.'}];
+  const evening = [
+    {c: clean, how: 'Снять макияж и умыться.'},
+    {c: HOME[p2].serum, how: '2–3 капли до впитывания.'},
+    ...(eyePM !== eyeAM ? [{c: eyePM, how: 'Вечером — второе средство для век, чтобы работать с обеими задачами.'}] : [{c: eyeAM, how: 'Вокруг глаз, как утром.'}]),
+    {c: night, how: 'Ночной уход на лицо, шею и декольте.'}];
+  const extra = [];
+  if (has('antiwrinkle')) extra.push({c: 'T-DAWS0006', how: 'Губы и кожа вокруг рта — утром и вечером.'});
+  extra.push({c: 'T-DHIG0010', how: '1–2 раза в неделю вечером вместо умывания. Не накануне процедуры и не в день процедуры.'});
+  const uniq = a => a.filter((x, i) => PROD[x.c] && a.findIndex(y => y.c === x.c) === i);
+  return {parts: [{h: 'Утром', steps: uniq(morning)}, {h: 'Вечером', steps: uniq(evening)}, {h: 'Дополнительно', steps: uniq(extra)}]};
+}
+function dgCourseCard(){
+  const {order, combo} = dg.last, ml = v => String(v).replace('.', ',') + ' мл';
+  const sess = s => [{title: 'Очищение', sub: 'age element cleansing balm', color: '#231F20'}, {title: 'Обновление кожи', sub: 'age element resurfacing solution', time: '5 мин', color: '#231F20'},
+    {title: 'Массаж с персональной формулой', sub: 'основа + ' + s.b.map((v, i) => v === null ? null : DIAG.boosterShort[combo.order[i]] + ' ' + ml(v)).filter(Boolean).join(' + '), time: '30 мин', color: '#231F20'},
+    {title: 'Маска', sub: 'age element ' + s.mask.toLowerCase(), time: /firming/i.test(s.mask) ? '15 мин' : '20 мин', color: '#231F20'}, {title: 'Защита', sub: 'SPF 50+', color: '#231F20'}];
+  return {color: '#231F20', sym: 'Ae', kicker: 'Ваш курс age element®', kicker2: '5 процедур · 1 раз в неделю', title: 'Персональная формула для вашей кожи',
+    meta: 'Главные задачи: ' + order.slice(0, 2).map(b => ({brightening: 'сияние и ровный тон', firming: 'упругость', antiwrinkle: 'морщины', redensifying: 'плотность и контур'})[b]).join(' и '),
+    sections: [{h: 'Процедуры 1, 3, 5', steps: sess(combo.s135)}, {h: 'Процедуры 2 и 4', steps: sess(combo.s24)}], file: 'Курс age element', foot: 'Состав процедуры подобран специалистом по результатам диагностики'};
+}
+function dgHomeCard(){
+  const {hs} = dg.last;
+  return {color: '#231F20', sym: 'Ae', kicker: 'Домашний уход', kicker2: 'между процедурами age element®', title: 'Ваш уход дома', file: 'Домашний уход age element',
+    sections: hs.parts.map(pt => ({h: pt.h, steps: pt.steps.map(st => ({title: PROD[st.c].ru, sub: PROD[st.c].en, note: st.how, color: lineInk(PROD[st.c])}))})), foot: 'Средства mesoestetic® · схема подобрана специалистом'};
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-dgshare]'); if (!b || !dg.last) return;
+  if (b.dataset.dgshare === 'course'){ if (!dg.last.combo) return; shareSheet('Схема курса для клиента', dgCourseCard()); } else shareSheet('Домашний уход для клиента', dgHomeCard()); });
 const HOME = {
   brightening:{cream:'T-DABS0002', eye:'T-DABS0003', serum:'T-DABS0004'},
   firming:{cream:'T-DAFS0003', eye:'T-DAFS0004', serum:'T-DAFS0005'},
@@ -977,8 +1077,7 @@ function dgResult(){
     <div class="ln"><span>${plink('T-PAGE0009','hydrabalance cream')}</span><span>основа</span></div>
     ${s.b.map((v,i) => v===null ? '' : `<div class="ln"><a href="#/p/${BCODE[combo.order[i]]}"><i style="background:${BCOL[combo.order[i]]}"></i>${DIAG.boosterShort[combo.order[i]]} booster</a><b>${ml(v)}</b></div>`).join('')}
     <div class="mk">Финиш: ${plink(MASK[s.mask.toLowerCase()], 'age element ' + s.mask.toLowerCase())}</div></div>`;
-  const h1 = HOME[order[0]], h2 = HOME[order[1]];
-  const homeItems = [[h1.cream,'основной крем'],[h1.eye,'контур глаз'],[h2.serum,'сыворотка-концентрат']];
+  const hs = homeScheme(order); dg.last = {order, combo, hs};
   return `<div class="wrap">
     <div class="pc-head" style="border:0;padding-bottom:0"><a class="crumb" href="#/line/age-element" style="--c:var(--monoc)"><i></i>age element® · формула бустеров</a></div>
     <h1>Приоритеты кожи клиента</h1>
@@ -993,10 +1092,10 @@ function dgResult(){
       </ol>
       <div class="sess">${sess('Сессии 1, 3, 5', combo.s135)}${sess('Сессии 2, 4', combo.s24)}</div>`
       : '<p class="approx">Не удалось найти протокол для этого сочетания баллов. Проверьте ответы.</p>'}
-    <h3 style="margin-top:30px">Домашний уход</h3>
-    <p class="small">Подобран по двум главным приоритетам: ${DIAG.boosterShort[order[0]]} + ${DIAG.boosterShort[order[1]]}.</p>
-    <ol class="steps">${homeItems.map(([c,role],i) => `<li><i>${i+1}</i><span>${PROD[c] ? `<a href="#/p/${c}">${esc(PROD[c].ru)}</a> · ${esc(PROD[c].en)}` : c}<br><span class="small">${role}</span></span></li>`).join('')}
-      <li><i>4</i><span><a href="#/p/T-DSUN0034">${esc(PROD['T-DSUN0034'].ru)}</a> · ежедневно<br><span class="small">защита результата процедур</span></span></li></ol>
+    <h3 style="margin-top:30px">Домашний уход между процедурами</h3>
+    <p class="small">Подобран по двум главным приоритетам — ${DIAG.boosterShort[order[0]]} утром и ${DIAG.boosterShort[order[1]]} вечером: подсерии age element сочетаются, чтобы кожа получала оба направления каждый день.</p>
+    ${hs.parts.map(pt => `<div class="hpart"><h4>${pt.h}</h4><ol class="steps">${pt.steps.map((st, i) => `<li><i>${i + 1}</i><span><a href="#/p/${st.c}">${esc(PROD[st.c].ru)}</a> · ${esc(PROD[st.c].en)}<br><span class="small">${esc(st.how)}</span></span></li>`).join('')}</ol></div>`).join('')}
+    <div class="rowbtns"><button class="btn pri" type="button" data-dgshare="course">Клиенту: схема курса</button><button class="btn" type="button" data-dgshare="home">Клиенту: домашний уход</button></div>
     <p class="note" style="margin-top:16px">Логика: баллы по ответам → ранжирование 4 бустеров → таблица из 52 комбинаций. Домашний уход адаптирован под текущий ассортимент. Перед внедрением сверьте с бренд-тренером.</p>
     <div class="dg-nav"><button class="btn" data-dg="edit">Изменить ответы</button><button class="btn pri" data-dg="restart">Новый клиент</button></div>
   </div>`;
@@ -1043,13 +1142,13 @@ function setTheme(t){
   root.classList.add('theme-anim'); clearTimeout(setTheme.tm); setTheme.tm = setTimeout(() => root.classList.remove('theme-anim'), 450);
   lsSet('theme', t === 'system' ? null : t);
   if (t === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', t);
-  syncThemeUI(); paintBars();
+  syncThemeUI(); paintBars(); if (window.applyTiles) applyTiles();
 }
 function syncThemeUI(){
   const t = themePref();
   document.querySelectorAll('[data-theme-set]').forEach(b => { const on = b.dataset.themeSet === t; b.classList.toggle('on', on); b.setAttribute('aria-checked', on); });
 }
-darkMQ.addEventListener('change', () => { if (themePref() === 'system') paintBars(); });
+darkMQ.addEventListener('change', () => { if (themePref() === 'system'){ paintBars(); applyTiles(); } });
 const thmMenu = $('#thmMenu'), thmBtn = $('#thmBtn');
 const menuOpen = () => thmMenu.classList.contains('open');
 function toggleMenu(open){ thmMenu.classList.toggle('open', open); thmBtn.setAttribute('aria-expanded', open); if (open) syncThemeUI(); }
@@ -1550,6 +1649,18 @@ function wrapLines(ctx, text, maxW){
   return out;
 }
 const PLATE_H = 300;
+/* фон «стекло» в картинках и PDF: мягкие пятна в тонах линии, текст поверх остаётся контрастным */
+function drawAura(ctx, W, H, color){
+  const c = /^#231f20$/i.test(color) ? '#8a8a8a' : color;
+  const hex = c.replace('#', ''), rgb = [0, 2, 4].map(i => parseInt(hex.slice(i, i + 2), 16));
+  const mix = (a, b, t) => a.map((v, i) => Math.round(v * (1 - t) + b[i] * t));
+  const blob = (x, y, r, col, a) => { const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(${col.join(',')},${a})`); g.addColorStop(1, `rgba(${col.join(',')},0)`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); };
+  blob(W * .12, 160, 520, rgb, .30);
+  blob(W * .92, 420, 480, mix(rgb, [201, 167, 255], .45), .26);
+  blob(W * .35, Math.min(H * .55, 1400), 560, mix(rgb, [255, 255, 255], .45), .26);
+  if (H > 1800) blob(W * .85, H - 300, 520, mix(rgb, [201, 167, 255], .3), .18);
+}
 function drawPlate(ctx, top, W, B){
   ctx.fillStyle = '#000'; ctx.fillRect(0, top, W, PLATE_H);
   const E = 168, x = 84, y = top + (PLATE_H - E) / 2;
@@ -1606,27 +1717,34 @@ async function renderCard(o, plate){
   };
   const H = Math.ceil(run(false)) + (plate ? PLATE_H : P - 20);
   c.height = H; ctx.textBaseline = 'top'; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+  drawAura(ctx, W, H - (plate ? PLATE_H : 0), color);
   run(true);
   if (plate) drawPlate(ctx, H - PLATE_H, W, B);
   return c;
 }
 /* PDF из JPEG-картинки: одна страница шириной A4, высота по картинке */
-function pdfFromCanvas(c){
-  const b64 = c.toDataURL('image/jpeg', 0.92).split(',')[1], bin = atob(b64), img = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) img[i] = bin.charCodeAt(i);
-  const pw = 595.28, ph = +(pw * c.height / c.width).toFixed(2), enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+function pdfFromCanvas(c){ return pdfFromCanvases([c]); }
+/* PDF из одной или нескольких страниц-картинок (JPEG), ширина страницы — A4 */
+function pdfFromCanvases(cs){
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
   const push = d => { const b = typeof d === 'string' ? enc.encode(d) : d; parts.push(b); len += b.length; };
   const obj = (n, f) => { offs[n] = len; push(n + ' 0 obj\n'); f(); push('\nendobj\n'); };
+  const N = cs.length, pageId = i => 3 + i * 3;
   push('%PDF-1.4\n');
   obj(1, () => push('<< /Type /Catalog /Pages 2 0 R >>'));
-  obj(2, () => push('<< /Type /Pages /Kids [3 0 R] /Count 1 >>'));
-  obj(3, () => push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pw} ${ph}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`));
-  obj(4, () => { push(`<< /Type /XObject /Subtype /Image /Width ${c.width} /Height ${c.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.length} >>\nstream\n`); push(img); push('\nendstream'); });
-  const cs = `q ${pw} 0 0 ${ph} 0 0 cm /Im0 Do Q`;
-  obj(5, () => push(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
-  const xref = len;
-  push('xref\n0 6\n0000000000 65535 f \n' + [1, 2, 3, 4, 5].map(n => String(offs[n]).padStart(10, '0') + ' 00000 n \n').join(''));
-  push(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  obj(2, () => push(`<< /Type /Pages /Kids [${cs.map((c, i) => pageId(i) + ' 0 R').join(' ')}] /Count ${N} >>`));
+  cs.forEach((c, i) => {
+    const b64 = c.toDataURL('image/jpeg', 0.9).split(',')[1], bin = atob(b64), img = new Uint8Array(bin.length);
+    for (let k = 0; k < bin.length; k++) img[k] = bin.charCodeAt(k);
+    const pw = 595.28, ph = +(pw * c.height / c.width).toFixed(2), P = pageId(i);
+    obj(P, () => push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pw} ${ph}] /Resources << /XObject << /Im0 ${P + 1} 0 R >> >> /Contents ${P + 2} 0 R >>`));
+    obj(P + 1, () => { push(`<< /Type /XObject /Subtype /Image /Width ${c.width} /Height ${c.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.length} >>\nstream\n`); push(img); push('\nendstream'); });
+    const cs2 = `q ${pw} 0 0 ${ph} 0 0 cm /Im0 Do Q`;
+    obj(P + 2, () => push(`<< /Length ${cs2.length} >>\nstream\n${cs2}\nendstream`));
+  });
+  const last = pageId(N - 1) + 2, xref = len;
+  push(`xref\n0 ${last + 1}\n0000000000 65535 f \n` + Array.from({length: last}, (_, k) => String(offs[k + 1]).padStart(10, '0') + ' 00000 n \n').join(''));
+  push(`trailer\n<< /Size ${last + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
   return new Blob(parts, {type: 'application/pdf'});
 }
 const canvasBlob = c => new Promise(r => c.toBlob(r, 'image/png'));
@@ -1670,7 +1788,7 @@ function shareSheet(title, card){
       const f = b.dataset.f; busy.textContent = 'Готовлю файл…';
       try {
         const c = await get(f !== 'png'), base = fileSafe(card.file || card.title);
-        const blob = f === 'pdf' ? pdfFromCanvas(c) : await canvasBlob(c);
+        const blob = f === 'pdf' ? (card.pages ? pdfFromCanvases(card.pages) : pdfFromCanvas(c)) : await canvasBlob(c);
         await shareBlob(blob, base + (f === 'pdf' ? '.pdf' : '.png'), card.title);
         busy.textContent = '';
       } catch (e) { busy.textContent = e.message || 'Не получилось поделиться'; }
@@ -2072,6 +2190,100 @@ function typoNode(root){
 new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) typoNode(n); else if (n.nodeType === 3 && n.parentNode) typoNode(n.parentNode); }))).observe(document.body, {childList: true, subtree: true});
 document.addEventListener('gesturestart', e => e.preventDefault());   // iOS Safari: без масштабирования щипком
 
+/* ══ Выжимки для потенциального партнёра: «Визитка бренда» (3 стр.) и «Почему mesoestetic» (5 стр.) ══
+   Только факты из справочника (О компании, линии, комплексы, протоколы); контакты — из настроек */
+async function renderPartner(kind){
+  await brandReady();
+  const A = DATA.about || {}, W = 1240, H = 1754, P = 100, CW = W - 2 * P, total = kind === 'brief' ? 3 : 5, pages = [];
+  const nLines = DATA.lines.length, nProd = DATA.products.length, nProt = RP().length;
+  const page = (n, title, kicker, draw) => {
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d'); ctx.textBaseline = 'top';
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); drawAura(ctx, W, H, ['#F57CAC', '#24AEEA', '#F2B705', '#AE8BCD', '#79BFAB'][n % 5]);
+    let y = P;
+    const T = (str, font, fill, x, maxW, lh, at) => { ctx.font = font; ctx.fillStyle = fill; const ls = wrapLines(ctx, str, maxW); ls.forEach((l, i) => ctx.fillText(l, x, (at ?? y) + i * lh)); return ls.length * lh; };
+    if (n > 1){ drawElement(ctx, P, y, 92, '#111111'); y += 4;
+      T(kicker.toUpperCase(), FONT(700, 22), '#6b6b6b', P + 124, CW - 124, 30, y); T(title, FONT(700, 46), '#111', P + 124, CW - 124, 54, y + 34); y += 150;
+      ctx.fillStyle = '#111'; ctx.fillRect(P, y, CW, 3); y += 44; }
+    y = draw(ctx, y, T) || y;
+    ctx.font = FONT(400, 22); ctx.fillStyle = '#8c8c8c'; ctx.fillText('mesoestetic® · ' + (kind === 'brief' ? 'визитка бренда' : 'почему mesoestetic'), P, H - 70);
+    ctx.textAlign = 'right'; ctx.fillText(n + ' / ' + total, W - P, H - 70); ctx.textAlign = 'left';
+    pages.push(c);
+  };
+  const facts = (ctx, y, T, cols) => { const fs = A.facts || [], cw = (CW - (cols - 1) * 30) / cols;
+    fs.forEach((f, i) => { const x = P + (i % cols) * (cw + 30), yy = y + Math.floor(i / cols) * 170;
+      ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillRect(x, yy, cw, 140); ctx.strokeStyle = '#111'; ctx.lineWidth = 3; ctx.strokeRect(x + 1.5, yy + 1.5, cw - 3, 137);
+      T(f[0], FONT(700, 48), '#111', x + 22, cw - 44, 54, yy + 18); T(f[1], FONT(400, 24), '#444', x + 22, cw - 44, 30, yy + 78); });
+    return y + Math.ceil(fs.length / cols) * 170 + 10; };
+  const tiles = (ctx, y, T) => { const per = 5, gap = 22, S = (CW - (per - 1) * gap) / per;
+    DATA.lines.forEach((l, i) => { const x = P + (i % per) * (S + gap), yy = y + Math.floor(i / per) * (S + 110), col = /^#231f20$/i.test(l.color) ? '#231F20' : l.color;
+      ctx.fillStyle = l.accent ? '#000' : '#fff'; ctx.fillRect(x, yy, S, S); ctx.lineWidth = 10; ctx.strokeStyle = col; ctx.strokeRect(x + 5, yy + 5, S - 10, S - 10);
+      ctx.fillStyle = l.accent ? col : '#111'; ctx.font = FONT(700, 64); ctx.fillText(l.sym, x + 22, yy + 40);
+      ctx.font = FONT(600, 22); ctx.textAlign = 'right'; ctx.fillStyle = l.accent ? '#fff' : '#111'; ctx.fillText(String(byLine(l.id).length), x + S - 20, yy + 20); ctx.textAlign = 'left';
+      const hN = T(l.name, FONT(600, 22), '#111', x, S + 10, 26, yy + S + 12); T(l.short || l.ru, FONT(400, 20), '#6b6b6b', x, S + 10, 24, yy + S + 14 + hN); });
+    return y + Math.ceil(DATA.lines.length / per) * (S + 110); };
+  const contact = (ctx, y, T) => { const ct = contactLines().map((l, i) => i ? l : l.replace('Ваш специалист: ', 'Ваш контакт: '));
+    if (A.contact){ y += T(A.contact[0], FONT(700, 30), '#111', P, CW, 40, y); y += T(A.contact[1], FONT(400, 26), '#333', P, CW, 36, y) + 30; }
+    if (ct.length){ ctx.fillStyle = '#111'; ctx.fillRect(P, y, CW, 34 + ct.length * 44 + 10);
+      ct.forEach((l, i) => { T(l, FONT(i ? 400 : 700, i ? 28 : 32), '#fff', P + 34, CW - 68, 44, y + 24 + i * 44); }); y += 34 + ct.length * 44 + 40; }
+    return y; };
+  // обложка (общая)
+  page(1, '', '', (ctx, y, T) => {
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, 620); drawElement(ctx, P, 110, 220, '#ffffff');
+    T(kind === 'brief' ? 'ВИЗИТКА БРЕНДА' : 'ПРЕЗЕНТАЦИЯ ДЛЯ ПАРТНЁРА', FONT(700, 26), '#bdbdbd', P + 270, CW - 270, 34, 140);
+    T(kind === 'brief' ? (A.title || 'mesoestetic Pharma Group') : 'Почему mesoestetic', FONT(700, 60), '#fff', P + 270, CW - 270, 68, 186);
+    T('главный элемент для экспертов в уходе за кожей', FONT(400, 30), '#d9d9d9', P, CW, 40, 420);
+    y = 690;
+    y += T(A.lead || '', FONT(400, 34), '#111', P, CW, 48, y) + 30;
+    if (A.quote) y += T(A.quote, FONT(600, 32), '#111', P, CW, 44, y) + 40;
+    y = facts(ctx, y, T, 3);
+    T(`${nLines} линий · ${nProd} препаратов · ${nProt} готовых протоколов`, FONT(600, 30), '#111', P, CW, 40, y + 10);
+  });
+  if (kind === 'brief'){
+    page(2, 'Ассортимент', `${nLines} линий · ${nProd} препаратов`, (ctx, y, T) => {
+      y += T('Профессиональные процедуры и домашний уход работают как единый протокол. Каждая линия — «элемент» таблицы: число в углу — количество препаратов.', FONT(400, 28), '#333', P, CW, 40, y) + 36;
+      y = tiles(ctx, y, T) + 10;
+      const kinds = {prof: 0, home: 0, med: 0}; DATA.products.forEach(p => kinds[p.kind]++);
+      T(`Кабинет: ${kinds.prof} · Домашний уход: ${kinds.home}${kinds.med ? ' · Медицинские: ' + kinds.med : ''}`, FONT(600, 28), '#111', P, CW, 38, y); });
+    page(3, 'Почему с нами работают', 'принципы и контакты', (ctx, y, T) => {
+      (A.principles || []).forEach(([b, t]) => { ctx.fillStyle = '#111'; ctx.fillRect(P, y + 10, 16, 16); y += T(b, FONT(700, 32), '#111', P + 40, CW - 40, 42, y); y += T(t, FONT(400, 27), '#333', P + 40, CW - 40, 38, y) + 26; });
+      y += 20; ctx.fillStyle = '#111'; ctx.fillRect(P, y, CW, 3); y += 40;
+      y += T('Для команды партнёра — приложение-справочник: составы, протоколы, тесты по ассортименту и карточки для клиентов.', FONT(400, 27), '#333', P, CW, 38, y) + 40;
+      contact(ctx, y, T); });
+  } else {
+    page(2, 'История и масштаб', 'с 1985 года', (ctx, y, T) => {
+      y += T(A.production || '', FONT(400, 28), '#333', P, CW, 40, y) + 34;
+      (A.history || []).forEach(([yr, t]) => { T(String(yr), FONT(700, 30), '#111', P, 140, 40, y); y += Math.max(40, T(t, FONT(400, 27), '#333', P + 160, CW - 160, 36, y)) + 14; });
+      if (A.sustain){ y += 24; y += T('Устойчивое развитие', FONT(700, 30), '#111', P, CW, 40, y) + 6; T(A.sustain, FONT(400, 26), '#333', P, CW, 36, y); } });
+    page(3, 'Наука и собственные разработки', 'патенты и комплексы', (ctx, y, T) => {
+      (A.principles || []).slice(0, 2).forEach(([b, t]) => { y += T(b, FONT(700, 30), '#111', P, CW, 40, y); y += T(t, FONT(400, 26), '#333', P, CW, 36, y) + 22; });
+      y += 10; ctx.fillStyle = '#111'; ctx.fillRect(P, y, CW, 3); y += 34;
+      const cx = (DATA.complexes || []).filter(c => c.patent).concat((DATA.complexes || []).filter(c => !c.patent)).slice(0, 8);
+      cx.forEach(c => { if (y > H - 260) return; const l = LINE[c.line];
+        T(c.name + (c.patent ? '  · патент' : ''), FONT(700, 28), '#111', P, CW, 36, y); y += 38;
+        y += T((l ? l.name + ': ' : '') + c.purpose, FONT(400, 25), '#333', P, CW, 34, y) + 18; }); });
+    page(4, 'Линии и протоколы', `${nLines} линий · ${nProt} протоколов`, (ctx, y, T) => {
+      y = tiles(ctx, y, T) + 16;
+      y += T(`${nProt} готовых комбинированных протоколов: процедура в кабинете по фазам и домашний уход для клиента.`, FONT(600, 28), '#111', P, CW, 38, y) + 18;
+      const gs = [...new Set(RP().map(r => r.g))];
+      gs.forEach(g => { const ts = RP().filter(r => r.g === g).map(r => r.title); y += T(g + ': ' + ts.join(', '), FONT(400, 24), '#333', P, CW, 32, y) + 10; }); });
+    page(5, 'Инструменты для команды', 'обучение и работа с клиентом', (ctx, y, T) => {
+      const tools = [['Справочник в телефоне', `${nProd} препаратов: составы INCI, активы, эффекты, идеальный клиент; умный поиск по задаче кожи.`],
+        ['Готовые протоколы', `${nProt} протоколов с временем каждого шага, конструктор своих протоколов и проверка сочетаний.`],
+        ['Диагностика age element®', 'Подбор персональной формулы бустеров на курс из 5 процедур и схемы домашнего ухода.'],
+        ['Академия', 'Тесты по каждой линии в виде ситуаций из практики, награды и сертификат.'],
+        ['Карточки для клиентов', 'Схема курса и домашнего ухода картинкой или PDF с контактами специалиста.']];
+      tools.forEach(([b, t]) => { ctx.fillStyle = '#111'; ctx.fillRect(P, y + 10, 16, 16); y += T(b, FONT(700, 30), '#111', P + 40, CW - 40, 40, y); y += T(t, FONT(400, 26), '#333', P + 40, CW - 40, 36, y) + 22; });
+      y += 20; contact(ctx, y, T); });
+  }
+  return pages;
+}
+function sharePartner(kind){
+  const card = {title: kind === 'brief' ? 'mesoestetic — визитка бренда' : 'Почему mesoestetic', file: kind === 'brief' ? 'mesoestetic_визитка_бренда' : 'Почему_mesoestetic', formats: ['pdf'],
+    render: async () => { card.pages = await renderPartner(kind); return card.pages[0]; }};
+  shareSheet(kind === 'brief' ? 'Визитка бренда · 3 страницы' : 'Почему mesoestetic · 5 страниц', card);
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-partner]'); if (b) sharePartner(b.dataset.partner); });
+applyTiles();
 /* ── запуск */
 route();
 typoNode($('#view'));
