@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   build:
@@ -105,7 +106,7 @@ jobs:
         with:
           name: mesoestetic-guide-${{ env.VER }}
           path: dist/mesoestetic-guide-${{ env.VER }}.apk
-          retention-days: 30
+          retention-days: 2
 
       - name: Опубликовать в Releases
         if: github.ref == 'refs/heads/main'
@@ -126,3 +127,18 @@ jobs:
             echo "### APK $VER"
             echo "Постоянная ссылка на свежую версию: https://github.com/${GITHUB_REPOSITORY}/releases/latest/download/mesoestetic-guide.apk"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Убрать старые версии (хранятся 3 последние)
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          R="$GITHUB_REPOSITORY"
+          # релизы: оставить 3 самых свежих, остальные удалить вместе с тегами
+          gh api "repos/$R/releases?per_page=100" --jq 'sort_by(.created_at) | reverse | .[3:][] | "\(.id) \(.tag_name)"' | while read id tag; do
+            echo "удаляю релиз $tag"; gh api -X DELETE "repos/$R/releases/$id" || true; gh api -X DELETE "repos/$R/git/refs/tags/$tag" || true
+          done
+          # файлы сборок старше часа (свежие — текущей сборки APK и iOS — остаются)
+          gh api "repos/$R/actions/artifacts?per_page=100" --jq '.artifacts[] | select((.created_at | fromdateiso8601) < (now - 3600)) | .id' | while read id; do
+            gh api -X DELETE "repos/$R/actions/artifacts/$id" || true
+          done

@@ -59,13 +59,13 @@ jobs:
         with:
           name: mesoestetic-ios-simulator
           path: mesoestetic-simulator.zip
-          retention-days: 30
+          retention-days: 2
 
       - uses: actions/upload-artifact@v4
         with:
           name: mesoestetic-ios-unsigned
           path: mesoestetic-unsigned.ipa
-          retention-days: 30
+          retention-days: 2
 
       # ── Подпись и TestFlight: только если в Settings → Secrets → Actions заданы секреты Apple
       - name: Проверить секреты Apple
@@ -126,4 +126,4 @@ jobs:
         with:
           name: mesoestetic-ios-signed
           path: build/export/*.ipa
-          retention-days: 30
+          retention-days: 2
