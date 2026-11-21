@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="2026.11.21.4">
+<meta name="app-version" content="2026.11.21.5">
 <script>
 /* ── обновление по воздуху: если в памяти лежит более свежая версия справочника, запускаем её вместо встроенной */
 (function(){
-  var BUNDLED = '2026.11.21.4';
+  var BUNDLED = '2026.11.21.5';
   function cmp(a, b){ a = String(a).split('.'); b = String(b).split('.');
     for (var i = 0; i < Math.max(a.length, b.length); i++){ var d = (+a[i] || 0) - (+b[i] || 0); if (d) return d; } return 0; }
   window.__verCmp = cmp;
@@ -24,6 +24,22 @@
     window.__OTA_RUNNING = v;
     document.write(h.replace(/<\/html>\s*$/i, '') + '<plaintext style="display:none">');
   } catch (e) {}
+})();
+/* ── страховка запуска: если справочник не стартовал за 9 с — убираем заставку, показываем ошибку и даём сбросить обновление */
+(function(){
+  if (window.__wd) return; window.__wd = 1; var errs = window.__errs = [];
+  addEventListener('error', function(e){ errs.push((e.message || 'ошибка') + (e.lineno ? ' · стр. ' + e.lineno : '')); });
+  setTimeout(function(){
+    if (window.__booted) return;
+    var sp = document.getElementById('splash'); if (sp) sp.remove();
+    var d = document.createElement('div'), v = ''; try { v = localStorage.getItem('ota.ver') || ''; } catch (e) {}
+    d.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#fff;color:#111;padding:56px 24px;font:16px/1.45 system-ui,sans-serif;overflow:auto';
+    d.innerHTML = '<b style="font-size:20px">Справочник не запустился</b><p>Версия: ' + (window.__OTA_RUNNING || window.__APP_VER || '?') + '</p><p style="color:#666;font-size:13px;word-break:break-word"></p>'
+      + '<button style="margin-top:16px;padding:14px 18px;border:2px solid #111;background:#111;color:#fff;font:inherit">Сбросить обновление и перезапустить</button>';
+    d.querySelector('p+p').textContent = errs.join(' | ') || 'Ошибок не перехвачено';
+    d.querySelector('button').onclick = function(){ try { var ls = localStorage; if (v) ls.setItem('ota.bad', v); ['ota.ver', 'ota.html', 'ota.try', 'tiles'].forEach(function(k){ ls.removeItem(k); }); } catch (e) {} location.reload(); };
+    (document.body || document.documentElement).appendChild(d);
+  }, 9000);
 })();
 /* ── тема: применяем до первой отрисовки, чтобы не было вспышки */
 (function(){ try { var t = localStorage.getItem('theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
@@ -1873,7 +1889,7 @@ function productCard(p, aud){
   const home = p.kind === 'home';
   return {...base, kicker2: home ? 'ваш домашний уход' : 'в вашей процедуре', meta: home ? p.size : '',
     sections: [p.say ? {h: 'Коротко', text: p.say} : {h: 'Коротко', text: firstSentence(p.desc)}, {h: 'Что даст коже', list: p.eff},
-      home && p.usage ? {h: 'Как применять', text: p.usage.split(/(?<=[.!])\s+/).slice(0, 2).join(' ')} : null], foot: home ? 'Подобрано специалистом · mesoestetic®' : 'Профессиональный уход mesoestetic®'};
+      home && p.usage ? {h: 'Как применять', text: (p.usage.match(/[^.!]+[.!]?/g) || []).slice(0, 2).join(' ').trim()} : null], foot: home ? 'Подобрано специалистом · mesoestetic®' : 'Профессиональный уход mesoestetic®'};
 }
 
 /* ══ Протоколы: шаги, экспозиция, итоговое время ═════════════════════════════════ */
@@ -2358,6 +2374,7 @@ applyTiles();
 /* ── запуск */
 route();
 typoNode($('#view'));
+window.__booted = 1;
 lsSet('ota.try', null);           // эта версия запустилась — откат не нужен
 syncThemeUI();
 if ('serviceWorker' in navigator && location.protocol === 'https:' && location.hostname !== 'localhost' && !IS_APP){
