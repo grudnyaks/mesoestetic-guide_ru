@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
-    paths: [ 'index.html', 'manifest.webmanifest', 'sw.js', 'icons/**', 'version.json', '.github/workflows/pages.yml' ]
+    paths: [ 'index.html', 'manifest.webmanifest', 'sw.js', 'icons/**', 'photos/**', 'version.json', '.github/workflows/pages.yml' ]
 
 permissions:
   contents: read
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v5
       - name: Собрать сайт
         run: |
-          mkdir -p site && cp -r index.html manifest.webmanifest sw.js version.json icons site/
+          mkdir -p site && cp -r index.html manifest.webmanifest sw.js version.json icons photos site/
           # новая версия — новый кэш офлайн-режима
           V=$(python3 -c "import json;print(json.load(open('version.json'))['version'])")
           sed -i "s/meso-guide-v1/meso-guide-$V/" site/sw.js
