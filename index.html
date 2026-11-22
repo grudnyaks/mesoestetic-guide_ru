@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="app-version" content="2026.11.22.7">
+<meta name="app-version" content="2026.11.22.8">
 <script>
 /* ── обновление по воздуху: если в памяти лежит более свежая версия справочника, запускаем её вместо встроенной */
 (function(){
-  var BUNDLED = '2026.11.22.7';
+  var BUNDLED = '2026.11.22.8';
   function cmp(a, b){ a = String(a).split('.'); b = String(b).split('.');
     for (var i = 0; i < Math.max(a.length, b.length); i++){ var d = (+a[i] || 0) - (+b[i] || 0); if (d) return d; } return 0; }
   window.__verCmp = cmp;
@@ -501,6 +501,12 @@ details.use[open] summary::after{content:" −"}
 .sheet .opts button svg{width:24px;height:24px}
 .sheet .opts button:active{background:var(--soft)}
 .sheet .busy{font-size:13px;color:var(--mute);min-height:18px;margin-top:10px}
+.sheet .sv-edit{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:center;width:100%;text-align:left;border:1px dashed var(--ink);background:none;color:var(--ink);padding:12px 14px;font:inherit;font-size:15px;margin:0 0 8px;cursor:pointer}
+.sheet .sv-edit svg{width:22px;height:22px}.sheet .sv-edit small{display:block;font-size:12px;color:var(--mute)}.sheet .sv-edit:active{background:var(--soft)}
+.sheet .sv-h{font-size:13.5px;color:var(--mute);line-height:1.45;margin:0 0 10px}
+.sheet .sv-f,.sheet .sv-text{display:block;width:100%;box-sizing:border-box;font:inherit;font-size:16px;line-height:1.4;border:1px solid var(--rule);border-radius:0;background:var(--paper);color:var(--ink);padding:9px 11px;margin:0 0 8px;resize:none;overflow:hidden;-webkit-appearance:none}
+.sheet .sv-f:focus,.sheet .sv-text:focus{outline:none;border-color:var(--ink)}.sheet .sv-text{min-height:40vh}
+.sheet .sv-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom,0px));background:var(--paper);padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));margin-top:4px}.sheet .sv-btns .btn.pri{color:var(--paper)}.sheet .sv-btns [data-sv="send"]{grid-column:1/-1;order:-1}.sheet .sv-btns .btn{color:var(--ink);flex:1;justify-content:center;min-width:0}
 
 /* ── протоколы */
 .ptotal{display:flex;align-items:baseline;justify-content:space-between;gap:12px;border:1px solid var(--ink);padding:14px 16px;margin:16px 0 6px}
@@ -1755,6 +1761,8 @@ const IC = {
   img:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="4.5" width="17" height="15"/><path d="M3.5 16l5-5 4 4 3-3 5 5"/><circle cx="15.5" cy="9" r="1.5"/></svg>',
   plate:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17"/><path d="M3.5 15.5h17" /><rect x="3.5" y="15.5" width="17" height="5" fill="currentColor"/></svg>',
   pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h9l4 4v14H6z"/><path d="M14.5 3v4.5H19"/><text x="7.6" y="17.5" font-size="5.6" font-weight="700" fill="currentColor" stroke="none" font-family="Arial">PDF</text></svg>',
+  txt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5.5h16M4 10h16M4 14.5h11M4 19h8"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
   clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>'
 };
 const FONT = (w, px) => `${w} ${px}px "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif`;
@@ -1777,8 +1785,14 @@ function drawElement(ctx, x, y, size, color){
 }
 let BRAND = null;
 const brandReady = () => BRAND || (BRAND = Promise.all([svgImg(ELSVG.replace(/width="100%" height="100%"/, 'width="437" height="430"'), '#ffffff'), svgImg(ELSVG.replace(/width="100%" height="100%"/, 'width="437" height="430"'), '#231F20')]).then(([w, k]) => ({elW: w, elK: k})));
+/* правка текста перед отправкой: TXT.ovr — замены «исходный → новый», TXT.log — все строки, которые попали на картинку */
+let TXT = null;
+function txtOv(s){ s = String(s ?? ''); if (!TXT) return s;
+  if (/[a-zа-яё]/i.test(s) && !TXT.seen.has(s)){ TXT.seen.add(s); TXT.log.push(s); }
+  return TXT.ovr.has(s) ? TXT.ovr.get(s) : s; }
 function wrapLines(ctx, text, maxW){
   const out = [];
+  const t0 = String(text ?? ''); text = txtOv(t0); if (t0.trim() && !String(text).trim()) return out;   // строку удалили при правке
   String(text ?? '').split('\n').forEach(par => { let line = '';
     nbsp(par).split(/[ \t\r]+/).filter(Boolean).forEach(word => { const t = line ? line + ' ' + word : word;
       if (ctx.measureText(t).width <= maxW || !line) line = t; else { out.push(line); line = word; } });
@@ -1786,6 +1800,8 @@ function wrapLines(ctx, text, maxW){
   return out;
 }
 const PLATE_H = 300;
+/* резкость картинок: рисуем в 2× (не больше ~16 Мп — предел iOS) */
+const canvasQ = (W, H) => Math.max(1, Math.min(2, Math.sqrt(16e6 / (W * H))));
 /* фон «стекло» в картинках и PDF: мягкие пятна в тонах линии, текст поверх остаётся контрастным */
 function drawAura(ctx, W, H, color){
   const c = /^#231f20$/i.test(color) ? '#8a8a8a' : color;
@@ -1813,7 +1829,7 @@ const loadImg = src => new Promise(res => { if (!src) return res(null); const im
 async function renderCard(o, plate){
   const B = await brandReady(), PH = await loadImg(o.photo);
   const W = 1080, P = 84, CW = W - 2 * P;
-  const c = document.createElement('canvas'); c.width = W; c.height = 10; const ctx = c.getContext('2d');
+  const c = document.createElement('canvas'); c.width = W; c.height = 10; const ctx = c.getContext('2d'); let Q = 1;
   const color = /^#231f20$/i.test(o.color || '') ? '#231F20' : (o.color || '#000');
   const run = draw => {
     let y = P;
@@ -1863,7 +1879,8 @@ async function renderCard(o, plate){
     return y;
   };
   const H = Math.ceil(run(false)) + (plate ? PLATE_H : P - 20);
-  c.height = H; ctx.textBaseline = 'top'; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+  Q = canvasQ(W, H); c.width = Math.round(W * Q); c.height = Math.round(H * Q); ctx.setTransform(Q, 0, 0, Q, 0, 0);
+  ctx.textBaseline = 'top'; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
   drawAura(ctx, W, H - (plate ? PLATE_H : 0), color);
   run(true);
   if (plate) drawPlate(ctx, H - PLATE_H, W, B);
@@ -1881,7 +1898,7 @@ function pdfFromCanvases(cs){
   obj(1, () => push('<< /Type /Catalog /Pages 2 0 R >>'));
   obj(2, () => push(`<< /Type /Pages /Kids [${cs.map((c, i) => pageId(i) + ' 0 R').join(' ')}] /Count ${N} >>`));
   cs.forEach((c, i) => {
-    const b64 = c.toDataURL('image/jpeg', 0.9).split(',')[1], bin = atob(b64), img = new Uint8Array(bin.length);
+    const b64 = c.toDataURL('image/jpeg', 0.93).split(',')[1], bin = atob(b64), img = new Uint8Array(bin.length);
     for (let k = 0; k < bin.length; k++) img[k] = bin.charCodeAt(k);
     const pw = 595.28, ph = +(pw * c.height / c.width).toFixed(2), P = pageId(i);
     obj(P, () => push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pw} ${ph}] /Resources << /XObject << /Im0 ${P + 1} 0 R >> >> /Contents ${P + 2} 0 R >>`));
@@ -1922,20 +1939,75 @@ function openSheet(inner, mount){
   sheetClose = close; mount && mount(el.querySelector('.card'), close); return close;
 }
 const closeSheet = () => { if (sheetClose){ sheetClose(); return true; } return false; };
+/* текстовая версия карточки (для мессенджеров) — с учётом правок */
+function cardText(o){
+  const ov = x => String(txtOv(x) ?? '').trim(), L = [], add = x => { x = ov(x); if (x) L.push(x); };
+  add(o.title); if (o.en) add(o.en);
+  const k = [o.kicker, o.kicker2].filter(Boolean).map(ov).filter(Boolean).join(' · '); if (k) L.push(k);
+  if (o.meta) add(o.meta); if (o.big) L.push(o.big.join(': '));
+  (o.sections || []).forEach(sec => { if (!sec || (!sec.text && !(sec.list || []).length && !(sec.steps || []).length)) return;
+    const b = [], hu = String(sec.h).toUpperCase(), h = TXT && TXT.ovr.has(hu) ? TXT.ovr.get(hu).trim() : sec.h;
+    if (sec.text){ const t = ov(sec.text); if (t) b.push(t); }
+    (sec.list || []).forEach(li => { const t = ov(li); if (t) b.push('• ' + t); });
+    (sec.steps || []).forEach((st, i) => { const t = ov(st.title), sub = st.sub ? ov(st.sub) : '', note = st.note ? ov(st.note) : '';
+      if (t || sub || note) b.push(`${i + 1}. ${t}${sub ? ' — ' + sub : ''}${st.time ? ' (' + st.time + ')' : ''}${note ? '\n   ' + note : ''}`); });
+    if (b.length){ L.push(''); if (h) L.push(h + ':'); L.push(...b); } });
+  const ct = contactLines().map(ov).filter(Boolean); if (ct.length){ L.push(''); L.push(...ct); }
+  if (o.foot){ const f = ov(o.foot); if (f){ L.push(''); L.push(f); } }
+  return L.join('\n').replace(/[ \t]{2,}/g, ' ');
+}
+async function shareText(text, title){
+  const SH = PLUG('Share');
+  if (IS_APP && SH){ await SH.share({title, text, dialogTitle: 'Поделиться'}); return 'sent'; }
+  if (navigator.share){ try { await navigator.share({title, text}); return 'sent'; } catch (e) { if (e.name === 'AbortError') return 'sent'; } }
+  return (await copyText(text)) ? 'copied' : 'fail';
+}
 function shareSheet(title, card){
-  const F = card.formats || ['plate', 'png', 'pdf'], own = !!card.render;
+  const F = [...(card.formats || ['plate', 'png', 'pdf']), ...(card.noText ? [] : ['text'])], own = !!card.render;
   const OPT = {plate: `<button type="button" data-f="plate">${IC.plate}<span>Картинка с фирменной плашкой<small>PNG · логотип и слоган внизу</small></span></button>`,
     png: `<button type="button" data-f="png">${IC.img}<span>Картинка<small>PNG${own ? ' · для мессенджеров' : ' · только карточка'}</small></span></button>`,
-    pdf: `<button type="button" data-f="pdf">${IC.pdf}<span>PDF<small>${own ? 'формат А4, для печати и почты' : 'с фирменной плашкой, для печати и почты'}</small></span></button>`};
+    pdf: `<button type="button" data-f="pdf">${IC.pdf}<span>PDF<small>${own ? 'формат А4, для печати и почты' : 'с фирменной плашкой, для печати и почты'}</small></span></button>`,
+    text: `<button type="button" data-f="text">${IC.txt}<span>Текстом<small>сообщение, которое можно изменить перед отправкой</small></span></button>`};
   const V = card.variants; let vk = V ? V[0][0] : '';
-  openSheet(`<h3>Поделиться</h3><p class="sub">${esc(title)}</p>${V ? `<div class="seg aud" role="tablist">${V.map(([k, t], i) => `<button type="button" role="tab" data-aud="${k}" class="${i ? '' : 'on'}">${t}</button>`).join('')}</div>` : ''}<img class="prev" alt="Предпросмотр"><div class="opts">${F.map(f => OPT[f]).join('')}</div><div class="busy" aria-live="polite"></div>`, async (box) => {
-    const busy = box.querySelector('.busy'), cache = {};
+  openSheet(`<h3>Поделиться</h3><p class="sub">${esc(title)}</p>${V ? `<div class="seg aud" role="tablist">${V.map(([k, t], i) => `<button type="button" role="tab" data-aud="${k}" class="${i ? '' : 'on'}">${t}</button>`).join('')}</div>` : ''}<div class="sv-main"><img class="prev" alt="Предпросмотр"><button type="button" class="sv-edit">${IC.edit}<span>Изменить текст<small>правки попадут в картинку, PDF и сообщение</small></span></button><div class="opts">${F.map(f => OPT[f]).join('')}</div></div><div class="sv-pane" hidden></div><div class="busy" aria-live="polite"></div>`, async (box) => {
+    const busy = box.querySelector('.busy'), main = box.querySelector('.sv-main'), pane = box.querySelector('.sv-pane'), cache = {}, st = {};
+    let queue = Promise.resolve();
+    const S = () => st[vk] || (st[vk] = {ovr: new Map(), log: [], seen: new Set()});
     const cur = () => V ? V.find(v => v[0] === vk)[2] : card;
-    const get = async plate => { const key = vk + (own || plate); return cache[key] || (cache[key] = own ? await card.render() : await renderCard(cur(), plate)); };
-    const preview = () => get(true).then(c => { box.querySelector('.prev').src = c.toDataURL('image/png'); });
+    // рендеры по очереди: правки (TXT) действуют только на свою картинку
+    const withTxt = fn => (queue = queue.then(async () => { TXT = S(); try { return await fn(); } finally { TXT = null; } }));
+    const get = plate => { const key = vk + (own || plate); return cache[key] || (cache[key] = withTxt(() => own ? card.render() : renderCard(cur(), plate))); };
+    const preview = () => get(true).then(c => { box.querySelector('.prev').src = c.toDataURL('image/jpeg', .9); });
+    const showMain = () => { pane.hidden = true; pane.innerHTML = ''; main.hidden = false; };
+    const showPane = html => { pane.innerHTML = html; main.hidden = true; pane.hidden = false; busy.textContent = '';
+      pane.querySelectorAll('textarea').forEach(t => { const fit = () => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 2 + 'px'; }; t.addEventListener('input', fit); requestAnimationFrame(fit); });
+      box.scrollTop = 0; };
+    const dropCache = () => Object.keys(cache).forEach(k => { if (k.startsWith(vk)) delete cache[k]; });
     preview();
-    box.querySelectorAll('[data-aud]').forEach(b => b.addEventListener('click', () => { vk = b.dataset.aud; box.querySelectorAll('[data-aud]').forEach(x => x.classList.toggle('on', x === b)); preview(); }));
-    box.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', async () => {
+    box.querySelectorAll('[data-aud]').forEach(b => b.addEventListener('click', () => { vk = b.dataset.aud; box.querySelectorAll('[data-aud]').forEach(x => x.classList.toggle('on', x === b)); showMain(); preview(); }));
+    box.querySelector('.sv-edit').addEventListener('click', async () => {
+      await get(true); const s = S();
+      showPane(`<p class="sv-h">Измените нужные строки — они обновятся на картинке, в PDF и в сообщении. Очистите поле, чтобы убрать строку.</p>
+        ${s.log.map((t, i) => `<textarea class="sv-f" data-i="${i}" rows="1" aria-label="Строка ${i + 1}">${esc(s.ovr.has(t) ? s.ovr.get(t) : t)}</textarea>`).join('')}
+        <div class="sv-btns"><button type="button" class="btn" data-sv="reset">Как было</button><button type="button" class="btn pri" data-sv="done">Готово</button></div>`);
+    });
+    box.querySelector('[data-f="text"]')?.addEventListener('click', async () => {
+      await get(true); const s = S(); let t;
+      await withTxt(() => { t = own ? s.log.map(x => (s.ovr.has(x) ? s.ovr.get(x) : x).trim()).filter(Boolean).join('\n\n') : cardText(cur()); });
+      showPane(`<p class="sv-h">Текст сообщения — его можно изменить перед отправкой.</p><textarea class="sv-text" aria-label="Текст сообщения">${esc(t)}</textarea>
+        <div class="sv-btns"><button type="button" class="btn" data-sv="back">Назад</button><button type="button" class="btn" data-sv="copy">Скопировать</button><button type="button" class="btn pri" data-sv="send">Отправить</button></div>`);
+    });
+    pane.addEventListener('click', async e => { const b = e.target.closest('[data-sv]'); if (!b) return; const a = b.dataset.sv, s = S();
+      if (a === 'back') return showMain();
+      if (a === 'reset' || a === 'done'){
+        if (a === 'reset') s.ovr.clear();
+        else pane.querySelectorAll('.sv-f').forEach(ta => { const o = s.log[+ta.dataset.i], v = ta.value.replace(/\s+$/, ''); if (v !== o) s.ovr.set(o, v); else s.ovr.delete(o); });
+        dropCache(); showMain(); preview(); busy.textContent = a === 'done' && s.ovr.size ? 'Изменения применены' : ''; return; }
+      const text = pane.querySelector('.sv-text').value;
+      if (a === 'copy'){ busy.textContent = (await copyText(text)) ? 'Текст скопирован — вставьте его в сообщение' : 'Не получилось скопировать'; return; }
+      if (a === 'send'){ try { const r = await shareText(text, card.title); busy.textContent = r === 'copied' ? 'Текст скопирован — вставьте его в сообщение' : r === 'fail' ? 'Не получилось отправить' : ''; } catch (err) { busy.textContent = err.message || 'Не получилось отправить'; } }
+    });
+    box.querySelectorAll('[data-f]:not([data-f="text"])').forEach(b => b.addEventListener('click', async () => {
       const f = b.dataset.f; busy.textContent = 'Готовлю файл…';
       try {
         const c = await get(f !== 'png'), base = fileSafe(cur().file || cur().title);
@@ -2246,8 +2318,8 @@ function favBlock(){
 /* ══ Сертификат академии: А4, PDF или картинка ══════════════════════════════════ */
 async function renderCert(o){
   await brandReady();
-  const W = 1240, H = 1754, P = 110, c = document.createElement('canvas'); c.width = W; c.height = H;
-  const ctx = c.getContext('2d'); ctx.textBaseline = 'top';
+  const W = 1240, H = 1754, P = 110, c = document.createElement('canvas'), Q = 1.6; c.width = W * Q; c.height = H * Q;
+  const ctx = c.getContext('2d'); ctx.scale(Q, Q); ctx.textBaseline = 'top';
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
   drawPlate(ctx, 0, W);                                                     // фирменная плашка сверху
   ctx.strokeStyle = '#111'; ctx.lineWidth = 3; ctx.strokeRect(40, PLATE_H + 40, W - 80, H - PLATE_H - 80);
@@ -2289,7 +2361,7 @@ function shareCert(){
   const d = certData();
   if (!d.items.length){ toast('<span>Сертификат появится после первой награды: пройдите любой тест от 75%.</span><button type="button" class="x" aria-label="Закрыть">✕</button>', 4000); return; }
   if (!d.name){ const i = $('#acName'); toast('<span>Впишите имя для сертификата — оно будет на документе.</span><button type="button" class="x" aria-label="Закрыть">✕</button>', 4000); if (i){ i.focus(); i.scrollIntoView({block: 'center', behavior: 'smooth'}); } return; }
-  shareSheet('Сертификат академии', {title: 'Сертификат ' + d.name, file: 'Сертификат mesoestetic ' + d.name, render: () => renderCert(d), formats: ['pdf', 'png']});
+  shareSheet('Сертификат академии', {title: 'Сертификат ' + d.name, file: 'Сертификат mesoestetic ' + d.name, render: () => renderCert(d), formats: ['pdf', 'png'], noText: true});
 }
 
 document.addEventListener('click', e => {
@@ -2354,7 +2426,7 @@ async function renderPartner(kind){
   const A = DATA.about || {}, W = 1240, H = 1754, P = 100, CW = W - 2 * P, total = kind === 'brief' ? 3 : 5, pages = [];
   const nLines = DATA.lines.length, nProd = DATA.products.length, nProt = RP().length;
   const page = (n, title, kicker, draw) => {
-    const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d'); ctx.textBaseline = 'top';
+    const c = document.createElement('canvas'), Q = 1.6; c.width = W * Q; c.height = H * Q; const ctx = c.getContext('2d'); ctx.scale(Q, Q); ctx.textBaseline = 'top';
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); drawAura(ctx, W, H, ['#F57CAC', '#24AEEA', '#F2B705', '#AE8BCD', '#79BFAB'][n % 5]);
     let y = P;
     const T = (str, font, fill, x, maxW, lh, at) => { ctx.font = font; ctx.fillStyle = fill; const ls = wrapLines(ctx, str, maxW); ls.forEach((l, i) => ctx.fillText(l, x, (at ?? y) + i * lh)); return ls.length * lh; };
